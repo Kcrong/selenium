@@ -249,7 +249,7 @@ func crx3Header(archiveData []byte, key *rsa.PrivateKey) ([]byte, error) {
 
 	header := &pb.CrxFileHeader{
 		Sha256WithRsa: []*pb.AsymmetricKeyProof{
-			&pb.AsymmetricKeyProof{
+			{
 				PublicKey: pubKey,
 				Signature: signature,
 			},
