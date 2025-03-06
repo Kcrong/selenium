@@ -3,9 +3,9 @@ package selenium
 import (
 	"time"
 
-	"github.com/tebeka/selenium/chrome"
-	"github.com/tebeka/selenium/firefox"
-	"github.com/tebeka/selenium/log"
+	"github.com/Kcrong/selenium/chrome"
+	"github.com/Kcrong/selenium/firefox"
+	"github.com/Kcrong/selenium/log"
 )
 
 // TODO(minusnine): make an enum type called FindMethod.
@@ -428,7 +428,7 @@ type WebDriver interface {
 	// WaitWithTimeout works like WaitWithTimeoutAndInterval, but with default polling interval.
 	WaitWithTimeout(condition Condition, timeout time.Duration) error
 
-	//Wait works like WaitWithTimeoutAndInterval, but using the default timeout and polling interval.
+	// Wait works like WaitWithTimeoutAndInterval, but using the default timeout and polling interval.
 	Wait(condition Condition) error
 }
 
