@@ -1,0 +1,26 @@
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    container_name: "chrome"
+    ports:
+      - "4444:4444"
+
+  firefox:
+    image: selenium/standalone-firefox:latest
+    container_name: "firefox"
+    ports:
+      - "4445:4444"
+
+  test-runner:
+    # 여기서 Dockerfile 이름을 명시적으로 지정합니다.
+    build:
+      context: .
+      dockerfile: Dockerfile.integration.test
+    container_name: "integration-test"
+    depends_on:
+      - chrome
+      - firefox
+    environment:
+      - SELENIUM_CHROME_URL=http://chrome:4444/wd/hub
+      - SELENIUM_FIREFOX_URL=http://firefox:4445/wd/hub
+    command: go test -v -tags=integration_test ./...
