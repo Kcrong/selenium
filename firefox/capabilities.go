@@ -1,68 +1,78 @@
-// Package firefox provides Firefox-specific types for WebDriver.
+// Package firefox provides Firefox-specific types for WebDriver (Selenium 4, W3C).
 package firefox
 
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/Kcrong/selenium/internal/zip"
 )
 
-// CapabilitiesKey is the name of the Firefox-specific key in the WebDriver
-// capabilities object.
+// CapabilitiesKey is the name of the Firefox-specific key in the W3C
+// capabilities object. (Selenium 4 기준)
 const CapabilitiesKey = "moz:firefoxOptions"
 
-// Capabilities provides Firefox-specific options to WebDriver.
+// Capabilities provides Firefox-specific options for WebDriver (W3C).
+// 이 구조체는 "moz:firefoxOptions" 필드에 넣어 사용합니다.
+//
+// 예:
+//
+//	firefoxCaps := firefox.Capabilities{
+//	    Binary: "/usr/bin/firefox",
+//	    Args: []string{"--devtools"},
+//	}
+//	capabilities := map[string]interface{}{
+//	    "alwaysMatch": map[string]interface{}{
+//	        "browserName": "firefox",
+//	        firefox.CapabilitiesKey: firefoxCaps,
+//	    },
+//	}
 type Capabilities struct {
-	// Binary is the absolute path of the Firefox binary, e.g. /usr/bin/firefox
-	// or /Applications/Firefox.app/Contents/MacOS/firefox, to select which
-	// custom browser binary to use. If left undefined, geckodriver will attempt
-	// to deduce the default location of Firefox on the current system.
+	// Binary 는 Firefox 실행 파일의 절대 경로입니다.
+	// 지정되지 않으면 geckodriver가 시스템에 설치된 Firefox를 자동으로 찾습니다.
 	Binary string `json:"binary,omitempty"`
-	// Args are the command line arguments to pass to the Firefox binary. These
-	// must include the leading -- where required e.g. ["--devtools"].
+
+	// Args 는 Firefox 실행 시에 전달할 커맨드 라인 인수 목록입니다.
+	// 예) ["--devtools", "--headless"]
 	Args []string `json:"args,omitempty"`
-	// Profile is the Base64-encoded zip file of a profile directory to use as
-	// the profile for the Firefox instance. This may be used to e.g.
-	// install extensions or custom certificates. Use the SetProfile method
-	// to load an existing profile from a file system.
+
+	// Profile 은 Base64로 인코딩된 프로필(zip 파일 형태) 데이터입니다.
+	// SetProfile 메서드를 통해 기존 디렉토리에서 생성된 프로필을 설정할 수 있습니다.
 	Profile string `json:"profile,omitempty"`
-	// Log specifies the logging options for Gecko.
+
+	// Log 는 Firefox가 남길 로그 레벨(verbosity)을 지정합니다.
 	Log *Log `json:"log,omitempty"`
-	// Map of preference name to preference value, which can be a string, a
-	// boolean or an integer.
+
+	// Prefs 는 Firefox의 about:config 항목(설정값)을 키/값으로 넘길 수 있습니다.
+	// 값은 string, bool, int 등이 가능합니다.
 	Prefs map[string]interface{} `json:"prefs,omitempty"`
 }
 
-// SetProfile sets the Profile datum with a Base64-encoded zip file of a
-// profile directory that is specified by basePath. This directory should
-// directly contain the profile's files, e.g. "user.js".
-//
-// Note that a zip file will be created in memory and then the zip file
-// will be base64-encoded. This will require memory at least 2x the size
-// of the data.
+// SetProfile 는 basePath 디렉토리를 zip으로 묶고, base64 인코딩하여 Profile 필드에 설정합니다.
 func (c *Capabilities) SetProfile(basePath string) error {
 	buf, err := zip.New(basePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create zip from profile directory: %w", err)
 	}
 	encoded := new(bytes.Buffer)
 	encoded.Grow(buf.Len())
 	encoder := base64.NewEncoder(base64.StdEncoding, encoded)
 	if _, err := buf.WriteTo(encoder); err != nil {
-		return err
+		return fmt.Errorf("failed to write zip data to base64 encoder: %w", err)
 	}
-	encoder.Close()
+	if err := encoder.Close(); err != nil {
+		return fmt.Errorf("failed to close base64 encoder: %w", err)
+	}
 
 	c.Profile = encoded.String()
-
 	return nil
 }
 
-// LogLevel is an enum that defines logging levels for Firefox.
+// LogLevel 은 Firefox (geckodriver)의 로깅 레벨을 정의합니다.
+// 아래 값들은 geckodriver 에서 지원하는 주요 레벨입니다.
 type LogLevel string
 
-// Levels of logging that can be specified in the Log structure.
 const (
 	Trace  LogLevel = "trace"
 	Debug  LogLevel = "debug"
@@ -73,8 +83,8 @@ const (
 	Fatal  LogLevel = "fatal"
 )
 
-// Log specifies how Firefox should log debug data.
+// Log 는 Firefox(geckodriver)가 남길 로그 설정을 지정합니다.
 type Log struct {
-	// Level is the verbosity level of logs that Firefox should output.
+	// Level은 로그 레벨을 결정합니다.
 	Level LogLevel `json:"level"`
 }

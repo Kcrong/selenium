@@ -111,7 +111,7 @@ func Example() {
 
 	// The following shows an example of using the Actions API.
 	// Please refer to the WC3 Actions spec for more detailed information.
-	if err := wd.Get("http://play.golang.org/?simple=1"); err != nil {
+	if err := wd.Get("https://go.dev/play/?simple=1"); err != nil {
 		panic(err)
 	}
 

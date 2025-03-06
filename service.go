@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -322,7 +321,7 @@ func NewFrameBufferWithOptions(options FrameBufferOptions) (*FrameBuffer, error)
 	}
 	defer r.Close()
 
-	auth, err := ioutil.TempFile("", "selenium-xvfb")
+	auth, err := os.CreateTemp("", "selenium-xvfb")
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +371,7 @@ func NewFrameBufferWithOptions(options FrameBufferOptions) (*FrameBuffer, error)
 		}
 		display = strings.TrimSpace(resp.display)
 		if _, err := strconv.Atoi(display); err != nil {
-			return nil, errors.New("Xvfb did not print the display number")
+			return nil, errors.New("xvfb did not print the display number")
 		}
 	case <-time.After(3 * time.Second):
 		return nil, errors.New("timeout waiting for Xvfb")
@@ -396,7 +395,7 @@ func (f FrameBuffer) Stop() error {
 	if err := f.cmd.Process.Kill(); err != nil {
 		return err
 	}
-	os.Remove(f.AuthPath) // best effort removal; ignore error
+	_ = os.Remove(f.AuthPath) // best effort removal; ignore error
 	if err := f.cmd.Wait(); err != nil && err.Error() != "signal: killed" {
 		return err
 	}

@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	socks5 "github.com/armon/go-socks5"
+	"github.com/armon/go-socks5"
 	"github.com/blang/semver"
 	"github.com/google/go-cmp/cmp"
 
@@ -29,12 +29,10 @@ import (
 	"github.com/Kcrong/selenium/chrome"
 	"github.com/Kcrong/selenium/firefox"
 	"github.com/Kcrong/selenium/log"
-	"github.com/Kcrong/selenium/sauce"
 )
 
 type Config struct {
 	Addr, Browser, Path, ServerURL string
-	Sauce                          *sauce.Capabilities
 	SeleniumVersion                semver.Version
 	ServiceOptions                 []selenium.ServiceOption
 	Headless                       bool
@@ -168,24 +166,6 @@ func RunCommonTests(t *testing.T, c Config) {
 	t.Run("ActiveElement", runTest(testActiveElement, c))
 	t.Run("AcceptAlert", runTest(testAcceptAlert, c))
 	t.Run("DismissAlert", runTest(testDismissAlert, c))
-}
-
-func testStatus(t *testing.T, c Config) {
-	wd := newRemote(t, newTestCapabilities(t, c), c)
-	defer quitRemote(t, wd)
-
-	status, err := wd.Status()
-	if err != nil {
-		t.Fatalf("wd.Status() returned error: %v", err)
-	}
-
-	if c.Sauce == nil {
-		if len(status.OS.Name) == 0 && status.Message == "" {
-			t.Fatalf("OS.Name or Message not provided: %+v", status)
-		}
-	} else if status.Build.Version != "Sauce Labs" {
-		t.Fatalf("status.Build.Version = %q, expected 'Sauce Labs'", status.Build.Version)
-	}
 }
 
 func testDeleteSession(t *testing.T, c Config) {
