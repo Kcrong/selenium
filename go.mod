@@ -8,7 +8,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/google/go-cmp v0.7.0
 	github.com/mediabuyerbot/go-crx3 v1.5.1
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.10.0
 	google.golang.org/protobuf v1.36.5
 )
 
