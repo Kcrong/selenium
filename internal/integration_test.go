@@ -7,8 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Kcrong/selenium"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Kcrong/selenium"
 )
 
 func TestFindElementsWithCustomHTML_Chrome(t *testing.T) {

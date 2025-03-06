@@ -16,12 +16,12 @@ jobs:
       - name: Set up Docker Compose
         # GitHub Actions에서는 docker-compose가 기본으로 설치되어 있습니다.
         # 별도의 설정이 필요한 경우 setup-buildx-action 등을 사용할 수도 있습니다.
-        run: docker-compose version
+        run: docker compose version
 
       - name: Build and run integration tests
         run: |
-          docker-compose up --build --abort-on-container-exit --exit-code-from test-runner
+          docker compose up --build --abort-on-container-exit --exit-code-from test-runner
 
       - name: Docker Compose Down
         if: always()
-        run: docker-compose down
+        run: docker compose down
