@@ -12,7 +12,6 @@ services:
       - "4445:4444"
 
   test-runner:
-    # 여기서 Dockerfile 이름을 명시적으로 지정합니다.
     build:
       context: .
       dockerfile: Dockerfile.integration.test
@@ -22,5 +21,5 @@ services:
       - firefox
     environment:
       - SELENIUM_CHROME_URL=http://chrome:4444
-      - SELENIUM_FIREFOX_URL=http://firefox:4445
+      - SELENIUM_FIREFOX_URL=http://firefox:4444
     command: go test -v -tags=integration_test ./...
