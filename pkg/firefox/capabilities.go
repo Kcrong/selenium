@@ -85,6 +85,6 @@ const (
 
 // Log 는 Firefox(geckodriver)가 남길 로그 설정을 지정합니다.
 type Log struct {
-	// Level은 로그 레벨을 결정합니다.
+	// Level 은 로그 레벨을 결정합니다.
 	Level LogLevel `json:"level"`
 }

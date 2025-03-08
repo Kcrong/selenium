@@ -11,9 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kcrong/selenium/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Kcrong/selenium/pkg/log"
 )
 
 type mockRoundTripper struct {
@@ -207,6 +208,15 @@ func TestPerformActions(t *testing.T) {
 	oldClient := HTTPClient
 	defer func() { HTTPClient = oldClient }()
 
+	testCases := []struct {
+		name   string
+		button MouseButton
+	}{
+		{"Left Button", LeftButton},
+		{"Middle Button", MiddleButton},
+		{"Right Button", RightButton},
+	}
+
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/actions") {
@@ -222,14 +232,18 @@ func TestPerformActions(t *testing.T) {
 	}
 	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			wd := &remoteWD{}
+			err := wd.SwitchSession("fakeSession")
+			require.NoError(t, err)
 
-	wd.StoreKeyActions("testKey", KeyDownAction("A"), KeyUpAction("A"))
-	wd.StorePointerActions("testPointer", MousePointer, PointerDownAction(LeftButton))
-	if err := wd.PerformActions(); err != nil {
-		t.Fatalf("PerformActions error: %v", err)
+			wd.StoreKeyActions("testKey", KeyDownAction("A"), KeyUpAction("A"))
+			wd.StorePointerActions("testPointer", MousePointer, PointerDownAction(tc.button), PointerUpAction(tc.button))
+
+			err = wd.PerformActions()
+			require.NoError(t, err, "PerformActions should not return an error")
+		})
 	}
 }
 
@@ -304,34 +318,110 @@ func TestLog(t *testing.T) {
 	oldClient := HTTPClient
 	defer func() { HTTPClient = oldClient }()
 
-	mock := &mockRoundTripper{
-		handler: func(req *http.Request) (*http.Response, error) {
-			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/log") {
-				body := `{"value":[{"timestamp":1690000000000,"level":"INFO","message":"test log"}]}`
-				return &http.Response{
-					StatusCode: 200,
-					Header:     map[string][]string{"Content-Type": {"application/json"}},
-					Body:       io.NopCloser(bytes.NewBufferString(body)),
-				}, nil
-			}
-			return nil, fmt.Errorf("unexpected call: %s %s", req.Method, req.URL.Path)
+	testCases := []struct {
+		name     string
+		logType  log.Type
+		response string
+		wantErr  bool
+		wantLogs []log.Message
+	}{
+		{
+			name:     "Browser Log",
+			logType:  log.Browser,
+			response: `{"value":[{"timestamp":1690000000000,"level":"INFO","message":"browser log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000000, 0), Level: log.Level("INFO"), Message: "browser log"},
+			},
+		},
+		{
+			name:     "Server Log",
+			logType:  log.Server,
+			response: `{"value":[{"timestamp":1690000001000,"level":"WARNING","message":"server log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000001, 0), Level: log.Level("WARNING"), Message: "server log"},
+			},
+		},
+		{
+			name:     "Client Log",
+			logType:  log.Client,
+			response: `{"value":[{"timestamp":1690000002000,"level":"ERROR","message":"client log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000002, 0), Level: log.Level("ERROR"), Message: "client log"},
+			},
+		},
+		{
+			name:     "Driver Log",
+			logType:  log.Driver,
+			response: `{"value":[{"timestamp":1690000003000,"level":"DEBUG","message":"driver log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000003, 0), Level: log.Level("DEBUG"), Message: "driver log"},
+			},
+		},
+		{
+			name:     "Performance Log",
+			logType:  log.Performance,
+			response: `{"value":[{"timestamp":1690000004000,"level":"INFO","message":"performance log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000004, 0), Level: log.Level("INFO"), Message: "performance log"},
+			},
+		},
+		{
+			name:     "Profiler Log",
+			logType:  log.Profiler,
+			response: `{"value":[{"timestamp":1690000005000,"level":"INFO","message":"profiler log"}]}`,
+			wantErr:  false,
+			wantLogs: []log.Message{
+				{Timestamp: time.Unix(1690000005, 0), Level: log.Level("INFO"), Message: "profiler log"},
+			},
+		},
+		{
+			name:     "Invalid JSON Response",
+			logType:  log.Browser,
+			response: `{invalid": "data"}`, // 잘못된 JSON 구조
+			wantErr:  true,
+			wantLogs: nil,
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := &mockRoundTripper{
+				handler: func(req *http.Request) (*http.Response, error) {
+					if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/log") {
+						return &http.Response{
+							StatusCode: 200,
+							Header:     map[string][]string{"Content-Type": {"application/json"}},
+							Body:       io.NopCloser(bytes.NewBufferString(tc.response)),
+						}, nil
+					}
+					return nil, fmt.Errorf("unexpected call: %s %s", req.Method, req.URL.Path)
+				},
+			}
+			HTTPClient = &http.Client{Transport: mock}
 
-	logs, err := wd.Log(log.Browser)
-	if err != nil {
-		t.Fatalf("Log(Browser) error: %v", err)
-	}
-	if len(logs) != 1 {
-		t.Fatalf("expected 1 log entry, got %d", len(logs))
-	}
-	if logs[0].Message != "test log" {
-		t.Errorf("expected log message 'test log', got %q", logs[0].Message)
+			wd := &remoteWD{}
+			err := wd.SwitchSession("fakeSession")
+			require.NoError(t, err)
+
+			logs, err := wd.Log(tc.logType)
+
+			if tc.wantErr {
+				assert.Error(t, err, "expected an error but got none")
+			} else {
+				assert.NoError(t, err, "unexpected error in Log()")
+				assert.Equal(t, len(tc.wantLogs), len(logs), "unexpected number of log entries")
+				for i, wantLog := range tc.wantLogs {
+					assert.Equal(t, wantLog.Message, logs[i].Message, "unexpected log message")
+					assert.Equal(t, wantLog.Level, logs[i].Level, "unexpected log level")
+					assert.Equal(t, wantLog.Timestamp.Unix(), logs[i].Timestamp.Unix(), "unexpected timestamp")
+				}
+			}
+		})
 	}
 }
 

@@ -12,8 +12,6 @@ import (
 	"io"
 	"mime"
 	"net/http"
-	"net/url"
-	"path"
 	"strings"
 	"time"
 
@@ -21,25 +19,6 @@ import (
 
 	"github.com/Kcrong/selenium/pkg/log"
 )
-
-// chromeCapabilityNames 는 ChromeDriver에서 top-level에 배치하길 기대하는 추가 capability 목록
-var chromeCapabilityNames = []string{
-	"loggingPrefs",
-}
-
-// W3C WebDriver에서 공식적으로 인정되는 top-level capabilities 목록
-// (https://www.w3.org/TR/webdriver/#capabilities 참조)
-var w3cCapabilityNames = []string{
-	"acceptInsecureCerts",
-	"browserName",
-	"browserVersion",
-	"platformName",
-	"pageLoadStrategy",
-	"proxy",
-	"setWindowRect",
-	"timeouts",
-	"unhandledPromptBehavior",
-}
 
 // remoteWD implements WebDriver, holding information about the session.
 type remoteWD struct {
@@ -81,17 +60,17 @@ func (wd *remoteWD) requestURL(template string, args ...interface{}) string {
 
 // serverReply is the top-level response from a WebDriver (Selenium 4, W3C).
 type serverReply struct {
-	// SessionID는 최상위에 있을 수도 있지만, W3C에서는 "value.sessionId"에만 존재하기도 함.
+	// SessionID는 최상위에 있을 수도 있지만, W3C 에서는 "value.sessionId"에만 존재하기도 함.
 	SessionID *string
 
-	// Value는 W3C 표준에서 실제 응답(또는 에러 정보)을 담는 필드.
+	// Value 는 W3C 표준에서 실제 응답(또는 에러 정보)을 담는 필드.
 	Value json.RawMessage
 
-	// Error는 W3C WebDriver 스펙에서 정의된 에러(에러명, 메시지 등).
+	// Error 는 W3C WebDriver 스펙에서 정의된 에러(에러명, 메시지 등).
 	Error
 }
 
-// Error는 W3C WebDriver 에러. https://www.w3.org/TR/webdriver/#handling-errors
+// Error 는 W3C WebDriver 에러. https://www.w3.org/TR/webdriver/#handling-errors
 type Error struct {
 	Err        string `json:"error"`
 	Message    string `json:"message"`
@@ -107,7 +86,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%s: %s", e.Err, e.Message)
 }
 
-// execute는 지정된 method/URL/data로 HTTP 요청을 보낸 뒤, WebDriver 응답(JSON)을 검사한다.
+// execute 는 지정된 method/URL/data 로 HTTP 요청을 보낸 뒤, WebDriver 응답(JSON)을 검사한다.
 func (wd *remoteWD) execute(method, url string, data []byte) (json.RawMessage, error) {
 	return executeCommand(method, url, data)
 }
@@ -122,11 +101,13 @@ func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(b io.ReadCloser) {
+		_ = b.Close()
+	}(resp.Body)
 
 	buf, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// Body를 제대로 읽지 못했다면, HTTP 상태 메시지를 반환
+		// Body 를 제대로 읽지 못했다면, HTTP 상태 메시지를 반환
 		return nil, errors.New(resp.Status)
 	}
 
@@ -145,7 +126,7 @@ func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
 		return nil, e
 	}
 
-	// W3C 표준 에러 처리: reply.Err가 존재하면 에러
+	// W3C 표준 에러 처리: reply.Err 가 존재하면 에러
 	if reply.Err != "" {
 		reply.HTTPCode = resp.StatusCode
 		return nil, &reply.Error
@@ -187,22 +168,10 @@ func NewRemote(capabilities Capabilities, urlPrefix string) (WebDriver, error) {
 	return wd, nil
 }
 
-// DeleteSession 는 주어진 세션 ID를 삭제(종료).
-func DeleteSession(urlPrefix, id string) error {
-	u, err := url.Parse(urlPrefix)
-	if err != nil {
-		return err
-	}
-	u.Path = path.Join(u.Path, "session", id)
-	return voidCommand("DELETE", u.String(), nil)
-}
-
 // NewSession 는 wd에 설정된 capabilities 기반으로 새 세션을 만든다.
 func (wd *remoteWD) NewSession() (string, error) {
 	params := map[string]interface{}{
-		"capabilities": map[string]interface{}{
-			"alwaysMatch": newW3CCapabilities(wd.capabilities),
-		},
+		"capabilities": wd.capabilities,
 	}
 
 	data, err := json.Marshal(params)
@@ -220,7 +189,7 @@ func (wd *remoteWD) NewSession() (string, error) {
 		return "", fmt.Errorf("failed to unmarshal server reply: %w", err)
 	}
 
-	// 세션ID 설정
+	// 세션 ID 설정
 	if reply.SessionID != nil {
 		wd.id = *reply.SessionID
 	}
@@ -280,7 +249,7 @@ func (wd *remoteWD) SwitchSession(sessionID string) error {
 	return nil
 }
 
-// Capabilities 는 현재 세션의 capabilities를 가져온다.
+// Capabilities 는 현재 세션의 capabilities 를 가져온다.
 func (wd *remoteWD) Capabilities() (Capabilities, error) {
 	u := wd.requestURL("/session/%s", wd.id)
 	resp, err := wd.execute("GET", u, nil)
@@ -308,32 +277,7 @@ func parseVersion(v string) (semver.Version, error) {
 	return semver.Version{}, err
 }
 
-// W3C 표준에 맞는 capabilities 를 생성한다.
-func newW3CCapabilities(caps Capabilities) Capabilities {
-	isValidW3CCapability := map[string]bool{}
-	for _, name := range w3cCapabilityNames {
-		isValidW3CCapability[name] = true
-	}
-	if b, ok := caps["browserName"]; ok && b == "chrome" {
-		for _, name := range chromeCapabilityNames {
-			isValidW3CCapability[name] = true
-		}
-	}
-
-	alwaysMatch := make(Capabilities)
-	for name, value := range caps {
-		// "moz:" / "goog:" 등 벤더 prefix는 그대로 포함
-		if isValidW3CCapability[name] || strings.Contains(name, ":") {
-			alwaysMatch[name] = value
-		}
-	}
-
-	return Capabilities{
-		"alwaysMatch": alwaysMatch,
-	}
-}
-
-// voidCommand 는 요청을 보내고 응답은 무시하는(Body만 확인) 헬퍼.
+// voidCommand 는 요청을 보내고 응답은 무시하는(Body 만 확인) 헬퍼.
 func voidCommand(method, url string, params interface{}) error {
 	if params == nil {
 		params = make(map[string]interface{})
@@ -350,7 +294,7 @@ func (wd *remoteWD) voidCommand(urlTemplate string, params interface{}) error {
 	return voidCommand("POST", wd.requestURL(urlTemplate, wd.id), params)
 }
 
-// stringCommand는 GET으로 요청한 뒤, 응답에서 Value(string)를 추출.
+// stringCommand 는 GET 으로 요청한 뒤, 응답에서 Value(string)를 추출.
 func (wd *remoteWD) stringCommand(urlTemplate string) (string, error) {
 	u := wd.requestURL(urlTemplate, wd.id)
 	resp, err := wd.execute("GET", u, nil)
@@ -367,7 +311,7 @@ func (wd *remoteWD) stringCommand(urlTemplate string) (string, error) {
 	return *reply.Value, nil
 }
 
-// stringsCommand는 GET으로 요청한 뒤, 응답에서 Value([]string]) 추출.
+// stringsCommand 는 GET 으로 요청한 뒤, 응답에서 Value([]string]) 추출.
 func (wd *remoteWD) stringsCommand(urlTemplate string) ([]string, error) {
 	resp, err := wd.execute("GET", wd.requestURL(urlTemplate, wd.id), nil)
 	if err != nil {
@@ -467,16 +411,21 @@ func (wd *remoteWD) PageSource() (string, error) {
 	return wd.stringCommand("/session/%s/source")
 }
 
-// Element-finding helper. W3C에서는 ByCSS, ByXPath, etc.를 사용.
-func (wd *remoteWD) find(by, value, suffix, baseURL string) ([]byte, error) {
-	// W3C에서는 ByID, ByName 등은 사라졌지만, 필요 시 CSS/XPath로 변환 가능.
+func (wd *remoteWD) convertBy(by, value string) (string, string) {
 	if by == ByID {
-		by = ByCSSSelector
-		value = "#" + value
+		return ByCSSSelector, fmt.Sprintf("[id=\"%s\"]", value)
 	} else if by == ByName {
-		by = ByCSSSelector
-		value = fmt.Sprintf("input[name=%q]", value)
+		return ByCSSSelector, fmt.Sprintf("[name=\"%s\"]", value)
+	} else if by == ByClassName {
+		return ByCSSSelector, fmt.Sprintf(".%s", value)
 	}
+
+	return by, value
+}
+
+// Element-finding helper. W3C 에서는 ByCSS, ByXPath, etc.를 사용.
+func (wd *remoteWD) find(by, value, suffix, baseURL string) ([]byte, error) {
+	by, value = wd.convertBy(by, value)
 
 	params := map[string]string{
 		"using": by,
@@ -497,7 +446,7 @@ func (wd *remoteWD) find(by, value, suffix, baseURL string) ([]byte, error) {
 // https://www.w3.org/TR/webdriver/#elements
 const webElementIdentifier = "element-6066-11e4-a52e-4f735466cecf"
 
-// DecodeElement 는 단일 element JSON 응답을 WebElement로 변환.
+// DecodeElement 는 단일 element JSON 응답을 WebElement 로 변환.
 func (wd *remoteWD) DecodeElement(data []byte) (WebElement, error) {
 	reply := new(struct{ Value map[string]string })
 	if err := json.Unmarshal(data, &reply); err != nil {
@@ -514,7 +463,7 @@ func (wd *remoteWD) DecodeElement(data []byte) (WebElement, error) {
 	}, nil
 }
 
-// DecodeElements 는 elements JSON 응답을 WebElement slice로 변환.
+// DecodeElements 는 elements JSON 응답을 WebElement slice 로 변환.
 func (wd *remoteWD) DecodeElements(data []byte) ([]WebElement, error) {
 	reply := new(struct{ Value []map[string]string })
 	if err := json.Unmarshal(data, &reply); err != nil {
@@ -558,15 +507,14 @@ func (wd *remoteWD) Close() error {
 	return err
 }
 
-// SwitchWindow 는 주어진 handle로 브라우저 창을 전환.
+// SwitchWindow 는 주어진 handle 로 브라우저 창을 전환.
 func (wd *remoteWD) SwitchWindow(handle string) error {
 	return wd.voidCommand("/session/%s/window", map[string]string{
 		"handle": handle,
 	})
 }
 
-func (wd *remoteWD) CloseWindow(handle string) error {
-	// W3C: window command는 현재 윈도만 닫을 수 있음. handle 무시.
+func (wd *remoteWD) CloseCurrentWindow() error {
 	return voidCommand("DELETE", wd.requestURL("/session/%s/window", wd.id), nil)
 }
 
@@ -595,7 +543,7 @@ func (wd *remoteWD) ResizeWindow(_ string, width, height int) error {
 	return err
 }
 
-// SwitchFrame는 frame 인자로 주어진 요소/인덱스로 프레임 전환.
+// SwitchFrame 는 frame 인자로 주어진 요소/인덱스로 프레임 전환.
 func (wd *remoteWD) SwitchFrame(frame interface{}) error {
 	params := map[string]interface{}{}
 	switch f := frame.(type) {
@@ -751,9 +699,6 @@ func (c cookie) sanitize() Cookie {
 	}
 }
 
-// Click / DoubleClick / ButtonDown / ButtonUp / (Actions)
-
-// Actions API (W3C):
 func (wd *remoteWD) Click(button int) error {
 	return wd.voidCommand("/session/%s/click", map[string]int{"button": button})
 }
@@ -808,32 +753,12 @@ func (wd *remoteWD) keyAction(action, keys string) error {
 	})
 }
 
-// KeyPauseAction, KeyUpAction, etc.:
-func KeyPauseAction(d time.Duration) KeyAction {
-	return KeyAction{"type": "pause", "duration": uint(d / time.Millisecond)}
-}
-
 func KeyUpAction(k string) KeyAction {
 	return KeyAction{"type": "keyUp", "value": k}
 }
 
 func KeyDownAction(k string) KeyAction {
 	return KeyAction{"type": "keyDown", "value": k}
-}
-
-// PointerPauseAction, PointerMoveAction, etc.:
-func PointerPauseAction(d time.Duration) PointerAction {
-	return PointerAction{"type": "pause", "duration": uint(d / time.Millisecond)}
-}
-
-func PointerMoveAction(d time.Duration, offset Point, origin PointerMoveOrigin) PointerAction {
-	return PointerAction{
-		"type":     "pointerMove",
-		"duration": uint(d / time.Millisecond),
-		"origin":   origin,
-		"x":        offset.X,
-		"y":        offset.Y,
-	}
 }
 
 func PointerUpAction(button MouseButton) PointerAction {
@@ -847,27 +772,19 @@ func PointerDownAction(button MouseButton) PointerAction {
 // StoreKeyActions / StorePointerActions / PerformActions / ReleaseActions
 
 func (wd *remoteWD) StoreKeyActions(inputID string, actions ...KeyAction) {
-	raw := []map[string]interface{}{}
-	for _, a := range actions {
-		raw = append(raw, a)
-	}
-	wd.storedActions = append(wd.storedActions, map[string]interface{}{
+	wd.storedActions = append(wd.storedActions, KeyAction{
 		"type":    "key",
 		"id":      inputID,
-		"actions": raw,
+		"actions": actions,
 	})
 }
 
 func (wd *remoteWD) StorePointerActions(inputID string, pointer PointerType, actions ...PointerAction) {
-	raw := []map[string]interface{}{}
-	for _, a := range actions {
-		raw = append(raw, a)
-	}
-	wd.storedActions = append(wd.storedActions, map[string]interface{}{
+	wd.storedActions = append(wd.storedActions, PointerAction{
 		"type":       "pointer",
 		"id":         inputID,
 		"parameters": map[string]string{"pointerType": string(pointer)},
-		"actions":    raw,
+		"actions":    actions,
 	})
 }
 
@@ -883,7 +800,6 @@ func (wd *remoteWD) ReleaseActions() error {
 	return voidCommand("DELETE", wd.requestURL("/session/%s/actions", wd.id), nil)
 }
 
-// Alerts
 func (wd *remoteWD) DismissAlert() error {
 	return wd.voidCommand("/session/%s/alert/dismiss", nil)
 }
@@ -984,37 +900,72 @@ func (wd *remoteWD) Wait(cond Condition) error {
 	return wd.WaitWithTimeoutAndInterval(cond, DefaultWaitTimeout, DefaultWaitInterval)
 }
 
-// Log retrieve logs (e.g., browser, driver, performance, etc.)
+// Log retrieves logs (e.g., browser, driver, performance, etc.) with zero allocation parsing.
 func (wd *remoteWD) Log(typ log.Type) ([]log.Message, error) {
 	u := wd.requestURL("/session/%s/log", wd.id)
 	params := map[string]log.Type{"type": typ}
-	data, err := json.Marshal(params)
+
+	// JSON 인코딩을 최소화하기 위해 bytes.Buffer와 json.Encoder 사용
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(params); err != nil {
+		return nil, err
+	}
+
+	resp, err := wd.execute("POST", u, buf.Bytes())
 	if err != nil {
 		return nil, err
 	}
-	resp, err := wd.execute("POST", u, data)
-	if err != nil {
-		return nil, err
+
+	// JSON 스트리밍 디코딩
+	decoder := json.NewDecoder(bytes.NewReader(resp))
+
+	// JSON 파싱을 위해 `{ "value": [...] }` 구조를 처리
+	token, err := decoder.Token()
+	if err != nil || token != json.Delim('{') {
+		return nil, fmt.Errorf("invalid JSON response")
 	}
-	c := new(struct {
-		Value []struct {
-			Timestamp int64  `json:"timestamp"`
-			Level     string `json:"level"`
-			Message   string `json:"message"`
-		} `json:"value"`
-	})
-	if err = json.Unmarshal(resp, c); err != nil {
-		return nil, err
-	}
-	res := make([]log.Message, len(c.Value))
-	for i, v := range c.Value {
-		res[i] = log.Message{
-			Timestamp: time.Unix(0, v.Timestamp*int64(time.Millisecond)),
-			Level:     log.Level(v.Level),
-			Message:   v.Message,
+
+	var logs []log.Message
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return nil, err
+		}
+
+		// "value" 필드 찾아서 처리
+		if key, ok := token.(string); ok && key == "value" {
+			if token, err := decoder.Token(); err != nil || token != json.Delim('[') {
+				return nil, fmt.Errorf("expected array for 'value' field")
+			}
+
+			// 로그 데이터 파싱
+			for decoder.More() {
+				var entry struct {
+					Timestamp int64  `json:"timestamp"`
+					Level     string `json:"level"`
+					Message   string `json:"message"`
+				}
+
+				if err := decoder.Decode(&entry); err != nil {
+					return nil, err
+				}
+
+				// Zero allocation 방식으로 바로 append
+				logs = append(logs, log.Message{
+					Timestamp: time.Unix(0, entry.Timestamp*int64(time.Millisecond)),
+					Level:     log.Level(entry.Level),
+					Message:   entry.Message,
+				})
+			}
+
+			// JSON 배열 닫힘
+			if token, err := decoder.Token(); err != nil || token != json.Delim(']') {
+				return nil, fmt.Errorf("expected closing bracket for 'value'")
+			}
 		}
 	}
-	return res, nil
+
+	return logs, nil
 }
 
 // remoteWE represents a WebElement, storing parent session and element id.
@@ -1022,8 +973,6 @@ type remoteWE struct {
 	parent *remoteWD
 	id     string
 }
-
-// Click / SendKeys / etc.
 
 func (elem *remoteWE) Click() error {
 	return elem.parent.voidCommand(fmt.Sprintf("/session/%%s/element/%s/click", elem.id), nil)
@@ -1124,17 +1073,7 @@ func (elem *remoteWE) GetAttribute(name string) (string, error) {
 	return elem.parent.stringCommand(urlT)
 }
 
-// Location / LocationInView / Size
 func (elem *remoteWE) Location() (*Point, error) {
-	return elem.location("")
-}
-
-func (elem *remoteWE) LocationInView() (*Point, error) {
-	return elem.location("_in_view")
-}
-
-func (elem *remoteWE) location(suffix string) (*Point, error) {
-	// W3C: element rect 사용
 	r, err := elem.rect()
 	if err != nil {
 		return nil, err

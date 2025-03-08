@@ -248,7 +248,7 @@ type WebDriver interface {
 	Close() error
 	SwitchFrame(frame interface{}) error
 	SwitchWindow(name string) error
-	CloseWindow(name string) error
+	CloseCurrentWindow() error
 	MaximizeWindow(name string) error
 	ResizeWindow(name string, width, height int) error
 
@@ -275,13 +275,11 @@ type WebDriver interface {
 	ButtonDown() error
 	ButtonUp() error
 
-	// Actions API (W3C)
 	StoreKeyActions(inputID string, actions ...KeyAction)
 	StorePointerActions(inputID string, pointer PointerType, actions ...PointerAction)
 	PerformActions() error
 	ReleaseActions() error
 
-	// KeyDown/KeyUp for sending key events:
 	KeyDown(keys string) error
 	KeyUp(keys string) error
 
@@ -322,7 +320,6 @@ type WebElement interface {
 	GetAttribute(name string) (string, error)
 	GetProperty(name string) (string, error)
 	Location() (*Point, error)
-	LocationInView() (*Point, error)
 	Size() (*Size, error)
 	CSSProperty(name string) (string, error)
 	Screenshot(scroll bool) ([]byte, error)
