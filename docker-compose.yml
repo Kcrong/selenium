@@ -83,4 +83,3 @@ services:
       - SELENIUM_CHROME_URL=http://selenium-hub:4444
       - SELENIUM_FIREFOX_URL=http://selenium-hub:4444
       - SELENIUM_TEST_SERVER_URL=http://mock-web:18080
-    command: go test -v -tags=integration_test ./...
