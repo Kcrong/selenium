@@ -1,6 +1,6 @@
 //go:build integration_test
 
-package internal
+package test
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Kcrong/selenium/pkg"
+	"github.com/Kcrong/selenium"
 )
 
 // TestIntegration_Screenshot captures a screenshot and verifies the image data
@@ -17,8 +17,8 @@ func runScreenshotTest(t *testing.T, browser, url string) {
 	t.Helper()
 
 	// Create WebDriver session
-	caps := pkg.Capabilities{"browserName": browser}
-	wd, err := pkg.NewRemote(caps, url)
+	caps := selenium.Capabilities{"browserName": browser}
+	wd, err := selenium.NewRemote(caps, url)
 	require.NoError(t, err, "Failed to create WebDriver")
 	t.Cleanup(func() {
 		assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")

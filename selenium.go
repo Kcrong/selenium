@@ -1,11 +1,11 @@
-package pkg
+package selenium
 
 import (
 	"time"
 
-	"github.com/Kcrong/selenium/pkg/chrome"
-	"github.com/Kcrong/selenium/pkg/firefox"
-	"github.com/Kcrong/selenium/pkg/log"
+	"github.com/Kcrong/selenium/chrome"
+	"github.com/Kcrong/selenium/firefox"
+	"github.com/Kcrong/selenium/log"
 )
 
 // Methods by which to find elements (W3C, though some locators are effectively synonyms now).

@@ -1,4 +1,4 @@
-package pkg
+package selenium
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Kcrong/selenium/pkg/log"
+	"github.com/Kcrong/selenium/log"
 )
 
 type mockRoundTripper struct {

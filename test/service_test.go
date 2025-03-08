@@ -1,6 +1,6 @@
 //go:build integration_test
 
-package internal
+package test
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Kcrong/selenium/pkg"
+	"github.com/Kcrong/selenium"
 )
 
 // TestIntegration_NewChromeDriverService verifies that ChromeDriver starts correctly
@@ -28,7 +28,7 @@ func TestIntegration_NewChromeDriverService(t *testing.T) {
 	port := 49152 + time.Now().Nanosecond()%16383
 
 	// Start ChromeDriver service
-	service, err := pkg.NewChromeDriverService(chromeDriverPath, port)
+	service, err := selenium.NewChromeDriverService(chromeDriverPath, port)
 	require.NoError(t, err, "Failed to start ChromeDriver service")
 	t.Cleanup(func() {
 		assert.NoError(t, service.Stop(), "Failed to stop ChromeDriver service")
@@ -50,8 +50,8 @@ func TestIntegration_NewChromeDriverService(t *testing.T) {
 	}, 10*time.Second, 500*time.Millisecond, "ChromeDriver did not start in time")
 
 	// Verify that a WebDriver session can be created
-	caps := pkg.Capabilities{"browserName": "chrome"}
-	wd, err := pkg.NewRemote(caps, fmt.Sprintf("http://localhost:%d", port))
+	caps := selenium.Capabilities{"browserName": "chrome"}
+	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", port))
 	require.NoError(t, err, "Failed to create WebDriver session")
 	t.Cleanup(func() {
 		assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")

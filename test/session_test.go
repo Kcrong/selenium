@@ -1,14 +1,15 @@
 //go:build integration_test
 
-package internal
+package test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/Kcrong/selenium/pkg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Kcrong/selenium"
 )
 
 func TestNewSession(t *testing.T) {
@@ -32,8 +33,8 @@ func TestNewSession(t *testing.T) {
 				t.Skipf("%s not set, skipping test", browser.env)
 			}
 
-			caps := pkg.Capabilities{"browserName": browser.name}
-			wd, err := pkg.NewRemote(caps, browserURL)
+			caps := selenium.Capabilities{"browserName": browser.name}
+			wd, err := selenium.NewRemote(caps, browserURL)
 			require.NoError(t, err, "cannot create WebDriver (%s): %v", browser.name, err)
 			t.Cleanup(func() {
 				assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")

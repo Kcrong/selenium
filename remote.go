@@ -1,7 +1,7 @@
 // Remote Selenium client implementation.
 // See https://www.w3.org/TR/webdriver for the protocol.
 
-package pkg
+package selenium
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/Kcrong/selenium/pkg/log"
+	"github.com/Kcrong/selenium/log"
 )
 
 // remoteWD implements WebDriver, holding information about the session.
@@ -159,7 +159,7 @@ func NewRemote(capabilities Capabilities, urlPrefix string) (WebDriver, error) {
 			Transport:     nil,
 			CheckRedirect: nil,
 			Jar:           nil,
-			Timeout:       5 * time.Second,
+			Timeout:       0, // No timeout
 		},
 	}
 

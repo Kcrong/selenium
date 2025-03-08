@@ -1,6 +1,6 @@
 //go:build integration_test
 
-package internal
+package test
 
 import (
 	"net/url"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Kcrong/selenium/pkg"
+	"github.com/Kcrong/selenium"
 )
 
 func TestIntegration_FindElement_And_FindElements(t *testing.T) {
@@ -28,15 +28,15 @@ func TestIntegration_FindElement_And_FindElements(t *testing.T) {
 		value      string
 		expectElem bool
 	}{
-		{"FindByID", pkg.ByID, "test-id", true},
-		{"FindByXPath", pkg.ByXPATH, "//*[@id='test-id']", true},
-		{"FindByLinkText", pkg.ByLinkText, "Click me", true},
-		{"FindByPartialLinkText", pkg.ByPartialLinkText, "Click", true},
-		{"FindByName", pkg.ByName, "test-name", true},
-		{"FindByTagName", pkg.ByTagName, "p", true},
-		{"FindByClassName", pkg.ByClassName, "test-class", true},
-		{"FindByCSSSelector", pkg.ByCSSSelector, ".test-class", true},
-		{"FindByInvalid", pkg.ByCSSSelector, ".invalid-class", false},
+		{"FindByID", selenium.ByID, "test-id", true},
+		{"FindByXPath", selenium.ByXPATH, "//*[@id='test-id']", true},
+		{"FindByLinkText", selenium.ByLinkText, "Click me", true},
+		{"FindByPartialLinkText", selenium.ByPartialLinkText, "Click", true},
+		{"FindByName", selenium.ByName, "test-name", true},
+		{"FindByTagName", selenium.ByTagName, "p", true},
+		{"FindByClassName", selenium.ByClassName, "test-class", true},
+		{"FindByCSSSelector", selenium.ByCSSSelector, ".test-class", true},
+		{"FindByInvalid", selenium.ByCSSSelector, ".invalid-class", false},
 	}
 
 	browsers := []struct {
@@ -57,8 +57,8 @@ func TestIntegration_FindElement_And_FindElements(t *testing.T) {
 				t.Skipf("%s not set, skipping test", browser.env)
 			}
 
-			caps := pkg.Capabilities{"browserName": browser.name}
-			wd, err := pkg.NewRemote(caps, browserURL)
+			caps := selenium.Capabilities{"browserName": browser.name}
+			wd, err := selenium.NewRemote(caps, browserURL)
 			require.NoErrorf(t, err, "cannot create WebDriver (%s)", browser.name)
 			t.Cleanup(func() {
 				assert.NoError(t, wd.Quit())

@@ -1,4 +1,4 @@
-package pkg_test
+package selenium_test
 
 import (
 	"encoding/json"
@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Kcrong/selenium/pkg"
-	"github.com/Kcrong/selenium/pkg/chrome"
-	"github.com/Kcrong/selenium/pkg/firefox"
-	"github.com/Kcrong/selenium/pkg/log"
+	"github.com/Kcrong/selenium"
+	"github.com/Kcrong/selenium/chrome"
+	"github.com/Kcrong/selenium/firefox"
+	"github.com/Kcrong/selenium/log"
 )
 
 func TestCapabilities(t *testing.T) {
-	caps := pkg.Capabilities{}
+	caps := selenium.Capabilities{}
 	// 1) Chrome options
 	chromeOpts := chrome.Capabilities{
 		Path: "/usr/bin/chrome",
@@ -36,8 +36,8 @@ func TestCapabilities(t *testing.T) {
 	}
 
 	// 3) Proxy
-	px := pkg.Proxy{
-		Type:          pkg.Manual,
+	px := selenium.Proxy{
+		Type:          selenium.Manual,
 		HTTP:          "http://myproxy.example.com",
 		HTTPPort:      8080,
 		AutoconfigURL: "http://someconfig.example.com",
@@ -66,7 +66,7 @@ func TestCapabilities(t *testing.T) {
 
 func TestCookie(t *testing.T) {
 	// 단순 Cookie 구조체 직렬화/역직렬화 테스트
-	c := pkg.Cookie{
+	c := selenium.Cookie{
 		Name:     "testCookie",
 		Value:    "someValue",
 		Path:     "/",
@@ -74,7 +74,7 @@ func TestCookie(t *testing.T) {
 		Secure:   true,
 		Expiry:   1234567890,
 		HTTPOnly: true,
-		SameSite: pkg.SameSiteLax,
+		SameSite: selenium.SameSiteLax,
 	}
 
 	data, err := json.Marshal(c)
@@ -82,7 +82,7 @@ func TestCookie(t *testing.T) {
 		t.Fatalf("failed to marshal cookie: %v", err)
 	}
 
-	var c2 pkg.Cookie
+	var c2 selenium.Cookie
 	if err := json.Unmarshal(data, &c2); err != nil {
 		t.Fatalf("failed to unmarshal cookie: %v", err)
 	}
@@ -94,15 +94,15 @@ func TestCookie(t *testing.T) {
 
 func TestKeyConstants(t *testing.T) {
 	// 예시: NullKey 가 \ue000 인지 확인
-	if pkg.NullKey != "\ue000" {
-		t.Errorf("NullKey expected '\\ue000', got %q", pkg.NullKey)
+	if selenium.NullKey != "\ue000" {
+		t.Errorf("NullKey expected '\\ue000', got %q", selenium.NullKey)
 	}
 	// 필요한 만큼 상수를 확인할 수도 있음
 }
 
 func TestCapabilitiesJSONMarshal(t *testing.T) {
 	// Capabilities 자체를 JSON 직렬화해보기
-	caps := pkg.Capabilities{
+	caps := selenium.Capabilities{
 		"browserName": "chrome",
 		"customKey":   "customValue",
 	}

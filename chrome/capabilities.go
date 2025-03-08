@@ -18,7 +18,7 @@ import (
 	"github.com/mediabuyerbot/go-crx3/pb"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/Kcrong/selenium/pkg/zip"
+	"github.com/Kcrong/selenium/zip"
 )
 
 // CapabilitiesKey is the key in the capabilities map under which

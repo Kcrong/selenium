@@ -1,6 +1,6 @@
 //go:build integration_test
 
-package internal
+package test
 
 import (
 	"net/url"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Kcrong/selenium/pkg"
+	"github.com/Kcrong/selenium"
 )
 
 func TestIntegration_MouseActions(t *testing.T) {
@@ -39,8 +39,8 @@ func TestIntegration_MouseActions(t *testing.T) {
 				t.Skipf("%s not set, skipping test", browser.env)
 			}
 
-			caps := pkg.Capabilities{"browserName": browser.name}
-			wd, err := pkg.NewRemote(caps, browserURL)
+			caps := selenium.Capabilities{"browserName": browser.name}
+			wd, err := selenium.NewRemote(caps, browserURL)
 			require.NoError(t, err, "cannot create WebDriver (%s): %v", browser.name, err)
 			t.Cleanup(func() {
 				assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")
@@ -52,15 +52,15 @@ func TestIntegration_MouseActions(t *testing.T) {
 			require.NoError(t, wd.Get(mouseTestPage))
 
 			// Find button element
-			btn, err := wd.FindElement(pkg.ByID, "testButton")
+			btn, err := wd.FindElement(selenium.ByID, "testButton")
 			require.NoError(t, err, "Failed to find testButton element")
 
 			testCases := []struct {
 				name          string
-				mouseButton   pkg.MouseButton
+				mouseButton   selenium.MouseButton
 				expectedClass string
 			}{
-				{"Left Click", pkg.LeftButton, "clicked-0"},
+				{"Left Click", selenium.LeftButton, "clicked-0"},
 			}
 
 			for _, tc := range testCases {
