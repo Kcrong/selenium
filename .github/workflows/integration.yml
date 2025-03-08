@@ -13,12 +13,31 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Set up Docker BuildKit
+        run: |
+          export DOCKER_BUILDKIT=1
+          echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
+
+      - name: Cache Docker images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Set up Docker Compose
         run: docker compose version
 
-      - name: Build and run integration tests
+      - name: Build and run integration tests with cached layers
         run: |
-          docker compose up --build --abort-on-container-exit --exit-code-from test-runner
+          docker compose build \
+            --progress=plain \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache
+
+          docker compose up --abort-on-container-exit --exit-code-from test-runner
 
       - name: Docker Compose Down
         if: always()
