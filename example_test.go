@@ -1,46 +1,43 @@
-# **selenium**
+//go:build example
 
-## **🔹 About**
-This is a **forked version** of [tebeka/selenium](https://github.com/tebeka/selenium),  
-**maintained for Selenium 4**, specifically for **Chrome**.
-
-For more details on the original project, please refer to the [original repository](https://github.com/tebeka/selenium).
-
----
-
-## **📦 Installation**
-Run the following command to install:
-```sh
-go get github.com/Kcrong/selenium
-```
-
----
-
-## **🚀 Usage**
-Below is an example demonstrating how to use **selenium** in Go:
-
-```go
-package main
+package selenium_test
 
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/Kcrong/selenium"
-	"github.com/Kcrong/selenium/pkg/log"
+	"github.com/Kcrong/selenium/log"
 )
 
-func TestExampleUsage(t *testing.T) {
-	// Initialize WebDriver
+func TestExampleUsage_Chrome(t *testing.T) {
+	/*
+		Before running this test, you need to start the web mock server.
+		Please refer docker-compose.yml for more details.
+	*/
+
+	// Set up WebDriver for Chrome
+	browserURL := os.Getenv("SELENIUM_CHROME_URL")
+	if browserURL == "" {
+		t.Skip("SELENIUM_CHROME_URL not set, skipping test")
+	}
+
+	webMockServerURL := os.Getenv("SELENIUM_TEST_SERVER_URL")
+	if webMockServerURL == "" {
+		t.Skip("SELENIUM_TEST_SERVER_URL not set, skipping test")
+	}
+
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	wd, err := selenium.NewRemote(caps, browserURL)
 	require.NoError(t, err, "failed to create WebDriver")
 	defer func() { assert.NoError(t, wd.Quit()) }()
 
-	// Load test page
 	path, err := url.JoinPath(webMockServerURL, "find.html")
 	require.NoError(t, err)
 	require.NoError(t, wd.Get(path))
@@ -88,13 +85,6 @@ func TestExampleUsage(t *testing.T) {
 
 	// Perform Mouse Action
 	require.NoError(t, wd.PerformActions())
+
+	time.Sleep(1 * time.Second) // Allow time for cleanup
 }
-```
-
----
-
-## **🔧 Integration Testing**
-To run integration tests, use the following command:
-```sh
-make integration
-```
