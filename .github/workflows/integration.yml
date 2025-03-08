@@ -15,8 +15,4 @@ jobs:
 
       - name: Run integration tests
         run: |
-          docker compose up --abort-on-container-exit --exit-code-from test-runner
-
-      - name: Docker Compose Down
-        if: always()
-        run: docker compose down
+          make integration
