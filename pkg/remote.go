@@ -1,7 +1,7 @@
 // Remote Selenium client implementation.
 // See https://www.w3.org/TR/webdriver for the protocol.
 
-package selenium
+package pkg
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/Kcrong/selenium/log"
+	"github.com/Kcrong/selenium/pkg/log"
 )
 
 // chromeCapabilityNames 는 ChromeDriver에서 top-level에 배치하길 기대하는 추가 capability 목록
@@ -113,8 +113,6 @@ func (wd *remoteWD) execute(method, url string, data []byte) (json.RawMessage, e
 }
 
 func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
-	debugLog("-> %s %s\n%s", method, filteredURL(url), data)
-
 	request, err := newRequest(method, url, data)
 	if err != nil {
 		return nil, err
@@ -127,16 +125,6 @@ func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
 	defer resp.Body.Close()
 
 	buf, err := io.ReadAll(resp.Body)
-	if debugFlag {
-		if err == nil {
-			// JSON pretty print
-			var prettyBuf bytes.Buffer
-			if e := json.Indent(&prettyBuf, buf, "", "    "); e == nil && prettyBuf.Len() > 0 {
-				buf = prettyBuf.Bytes()
-			}
-		}
-		debugLog("<- %s [%s]\n%s", resp.Status, resp.Header["Content-Type"], buf)
-	}
 	if err != nil {
 		// Body를 제대로 읽지 못했다면, HTTP 상태 메시지를 반환
 		return nil, errors.New(resp.Status)
@@ -177,7 +165,7 @@ func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
 }
 
 // DefaultURLPrefix 는 기본 WebDriver endpoint.
-const DefaultURLPrefix = "http://127.0.0.1:4444/wd/hub"
+const DefaultURLPrefix = "http://127.0.0.1:4444/session"
 
 // NewRemote 는 새로운 원격(WebDriver) 세션을 생성한다.
 func NewRemote(capabilities Capabilities, urlPrefix string) (WebDriver, error) {
@@ -269,7 +257,6 @@ func (wd *remoteWD) NewSession() (string, error) {
 					}
 					parsed, e := parseVersion(ver)
 					if e != nil {
-						debugLog("error parsing version: %v\n", e)
 						continue
 					}
 					wd.browserVersion = parsed
@@ -825,9 +812,11 @@ func (wd *remoteWD) keyAction(action, keys string) error {
 func KeyPauseAction(d time.Duration) KeyAction {
 	return KeyAction{"type": "pause", "duration": uint(d / time.Millisecond)}
 }
+
 func KeyUpAction(k string) KeyAction {
 	return KeyAction{"type": "keyUp", "value": k}
 }
+
 func KeyDownAction(k string) KeyAction {
 	return KeyAction{"type": "keyDown", "value": k}
 }
@@ -836,6 +825,7 @@ func KeyDownAction(k string) KeyAction {
 func PointerPauseAction(d time.Duration) PointerAction {
 	return PointerAction{"type": "pause", "duration": uint(d / time.Millisecond)}
 }
+
 func PointerMoveAction(d time.Duration, offset Point, origin PointerMoveOrigin) PointerAction {
 	return PointerAction{
 		"type":     "pointerMove",
@@ -845,9 +835,11 @@ func PointerMoveAction(d time.Duration, offset Point, origin PointerMoveOrigin) 
 		"y":        offset.Y,
 	}
 }
+
 func PointerUpAction(button MouseButton) PointerAction {
 	return PointerAction{"type": "pointerUp", "button": button}
 }
+
 func PointerDownAction(button MouseButton) PointerAction {
 	return PointerAction{"type": "pointerDown", "button": button}
 }
@@ -895,12 +887,15 @@ func (wd *remoteWD) ReleaseActions() error {
 func (wd *remoteWD) DismissAlert() error {
 	return wd.voidCommand("/session/%s/alert/dismiss", nil)
 }
+
 func (wd *remoteWD) AcceptAlert() error {
 	return wd.voidCommand("/session/%s/alert/accept", nil)
 }
+
 func (wd *remoteWD) AlertText() (string, error) {
 	return wd.stringCommand("/session/%s/alert/text")
 }
+
 func (wd *remoteWD) SetAlertText(text string) error {
 	return wd.voidCommand("/session/%s/alert/text", map[string]string{"text": text})
 }
@@ -1109,9 +1104,11 @@ func (wd *remoteWD) boolCommand(urlTemplate string) (bool, error) {
 func (elem *remoteWE) IsSelected() (bool, error) {
 	return elem.boolQuery("/session/%%s/element/%s/selected")
 }
+
 func (elem *remoteWE) IsEnabled() (bool, error) {
 	return elem.boolQuery("/session/%%s/element/%s/enabled")
 }
+
 func (elem *remoteWE) IsDisplayed() (bool, error) {
 	return elem.boolQuery("/session/%%s/element/%s/displayed")
 }
@@ -1131,6 +1128,7 @@ func (elem *remoteWE) GetAttribute(name string) (string, error) {
 func (elem *remoteWE) Location() (*Point, error) {
 	return elem.location("")
 }
+
 func (elem *remoteWE) LocationInView() (*Point, error) {
 	return elem.location("_in_view")
 }

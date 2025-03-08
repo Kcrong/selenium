@@ -1,6 +1,6 @@
 //go:build integration_test
 
-package internal
+package selenium
 
 import (
 	"net/url"
@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/Kcrong/selenium"
 )
 
 func TestFindElementsWithCustomHTML_Chrome(t *testing.T) {
@@ -18,8 +16,8 @@ func TestFindElementsWithCustomHTML_Chrome(t *testing.T) {
 		t.Skip("SELENIUM_CHROME_URL not set, skipping Chrome test")
 	}
 
-	caps := selenium.Capabilities{"browserName": "chrome"}
-	wd, err := selenium.NewRemote(caps, seleniumURL)
+	caps := Capabilities{"browserName": "chrome"}
+	wd, err := NewRemote(caps, seleniumURL)
 	if err != nil {
 		t.Fatalf("Failed to create WebDriver (chrome): %v", err)
 	}
@@ -47,12 +45,12 @@ func TestFindElementsWithCustomHTML_Chrome(t *testing.T) {
 	}
 
 	// 예시: 특정 클래스의 요소를 여러 개 찾기
-	elems, err := wd.FindElements(selenium.ByCSSSelector, ".test-class")
+	elems, err := wd.FindElements(ByCSSSelector, ".test-class")
 	assert.NoError(t, err)
 	assert.Len(t, elems, 2)
 
 	// 예시: ID로 유일한 요소 찾기
-	elem, err := wd.FindElement(selenium.ByID, "unique-id")
+	elem, err := wd.FindElement(ByID, "unique-id")
 	assert.NoError(t, err)
 	text, err := elem.Text()
 	assert.NoError(t, err)
@@ -65,8 +63,8 @@ func TestFindElementsWithCustomHTML_Firefox(t *testing.T) {
 		t.Skip("SELENIUM_FIREFOX_URL not set, skipping Firefox test")
 	}
 
-	caps := selenium.Capabilities{"browserName": "firefox"}
-	wd, err := selenium.NewRemote(caps, seleniumURL)
+	caps := Capabilities{"browserName": "firefox"}
+	wd, err := NewRemote(caps, seleniumURL)
 	if err != nil {
 		t.Fatalf("Failed to create WebDriver (firefox): %v", err)
 	}
@@ -93,11 +91,11 @@ func TestFindElementsWithCustomHTML_Firefox(t *testing.T) {
 		t.Fatalf("Failed to load data URL: %v", err)
 	}
 
-	elems, err := wd.FindElements(selenium.ByCSSSelector, ".test-paragraph")
+	elems, err := wd.FindElements(ByCSSSelector, ".test-paragraph")
 	assert.NoError(t, err)
 	assert.Len(t, elems, 2)
 
-	elem, err := wd.FindElement(selenium.ByID, "unique-section")
+	elem, err := wd.FindElement(ByID, "unique-section")
 	assert.NoError(t, err)
 	secText, err := elem.Text()
 	assert.NoError(t, err)

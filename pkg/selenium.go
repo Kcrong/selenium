@@ -1,11 +1,11 @@
-package selenium
+package pkg
 
 import (
 	"time"
 
-	"github.com/Kcrong/selenium/chrome"
-	"github.com/Kcrong/selenium/firefox"
-	"github.com/Kcrong/selenium/log"
+	"github.com/Kcrong/selenium/pkg/chrome"
+	"github.com/Kcrong/selenium/pkg/firefox"
+	"github.com/Kcrong/selenium/pkg/log"
 )
 
 // Methods by which to find elements (W3C, though some locators are effectively synonyms now).
@@ -222,6 +222,7 @@ const (
 
 // KeyAction and PointerAction are for W3C Actions API.
 type KeyAction map[string]interface{}
+
 type PointerAction map[string]interface{}
 
 // Actions stores KeyActions and PointerActions for later execution.

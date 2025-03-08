@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/Kcrong/selenium/internal/zip"
+	"github.com/Kcrong/selenium/pkg/zip"
 )
 
 // CapabilitiesKey is the name of the Firefox-specific key in the W3C

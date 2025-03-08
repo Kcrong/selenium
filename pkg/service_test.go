@@ -1,4 +1,4 @@
-package selenium
+package pkg
 
 import (
 	"fmt"
