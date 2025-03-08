@@ -21,6 +21,6 @@ services:
       - chrome
       - firefox
     environment:
-      - SELENIUM_CHROME_URL=http://chrome:4444/wd/hub
-      - SELENIUM_FIREFOX_URL=http://firefox:4445/wd/hub
+      - SELENIUM_CHROME_URL=http://chrome:4444
+      - SELENIUM_FIREFOX_URL=http://firefox:4445
     command: go test -v -tags=integration_test ./...
