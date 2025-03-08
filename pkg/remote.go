@@ -29,6 +29,8 @@ type remoteWD struct {
 
 	// Actions API: queued KeyActions/PointerActions for Perform/Release.
 	storedActions Actions
+
+	httpClient *http.Client
 }
 
 const (
@@ -38,9 +40,6 @@ const (
 	// DefaultWaitTimeout 은 Wait 함수에서 조건 만족을 대기하는 기본 최대 시간입니다.
 	DefaultWaitTimeout = 60 * time.Second
 )
-
-// HTTPClient is the default client to use to communicate with the WebDriver server.
-var HTTPClient = http.DefaultClient
 
 const jsonContentType = "application/json"
 
@@ -88,16 +87,16 @@ func (e *Error) Error() string {
 
 // execute 는 지정된 method/URL/data 로 HTTP 요청을 보낸 뒤, WebDriver 응답(JSON)을 검사한다.
 func (wd *remoteWD) execute(method, url string, data []byte) (json.RawMessage, error) {
-	return executeCommand(method, url, data)
+	return executeCommand(method, url, data, wd.httpClient)
 }
 
-func executeCommand(method, url string, data []byte) (json.RawMessage, error) {
+func executeCommand(method, url string, data []byte, httpCli *http.Client) (json.RawMessage, error) {
 	request, err := newRequest(method, url, data)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := HTTPClient.Do(request)
+	resp, err := httpCli.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +155,12 @@ func NewRemote(capabilities Capabilities, urlPrefix string) (WebDriver, error) {
 	wd := &remoteWD{
 		urlPrefix:    urlPrefix,
 		capabilities: capabilities,
+		httpClient: &http.Client{
+			Transport:     nil,
+			CheckRedirect: nil,
+			Jar:           nil,
+			Timeout:       5 * time.Second,
+		},
 	}
 
 	if b := capabilities["browserName"]; b != nil {
@@ -171,7 +176,9 @@ func NewRemote(capabilities Capabilities, urlPrefix string) (WebDriver, error) {
 // NewSession 는 wd에 설정된 capabilities 기반으로 새 세션을 만든다.
 func (wd *remoteWD) NewSession() (string, error) {
 	params := map[string]interface{}{
-		"capabilities": wd.capabilities,
+		"capabilities": map[string]interface{}{
+			"alwaysMatch": wd.capabilities,
+		},
 	}
 
 	data, err := json.Marshal(params)
@@ -278,7 +285,7 @@ func parseVersion(v string) (semver.Version, error) {
 }
 
 // voidCommand 는 요청을 보내고 응답은 무시하는(Body 만 확인) 헬퍼.
-func voidCommand(method, url string, params interface{}) error {
+func voidCommand(method, url string, params interface{}, httpCli *http.Client) error {
 	if params == nil {
 		params = make(map[string]interface{})
 	}
@@ -286,12 +293,12 @@ func voidCommand(method, url string, params interface{}) error {
 	if err != nil {
 		return err
 	}
-	_, err = executeCommand(method, url, data)
+	_, err = executeCommand(method, url, data, httpCli)
 	return err
 }
 
 func (wd *remoteWD) voidCommand(urlTemplate string, params interface{}) error {
-	return voidCommand("POST", wd.requestURL(urlTemplate, wd.id), params)
+	return voidCommand("POST", wd.requestURL(urlTemplate, wd.id), params, wd.httpClient)
 }
 
 // stringCommand 는 GET 으로 요청한 뒤, 응답에서 Value(string)를 추출.
@@ -515,7 +522,7 @@ func (wd *remoteWD) SwitchWindow(handle string) error {
 }
 
 func (wd *remoteWD) CloseCurrentWindow() error {
-	return voidCommand("DELETE", wd.requestURL("/session/%s/window", wd.id), nil)
+	return voidCommand("DELETE", wd.requestURL("/session/%s/window", wd.id), nil, wd.httpClient)
 }
 
 func (wd *remoteWD) MaximizeWindow(_ string) error {
@@ -797,7 +804,7 @@ func (wd *remoteWD) PerformActions() error {
 }
 
 func (wd *remoteWD) ReleaseActions() error {
-	return voidCommand("DELETE", wd.requestURL("/session/%s/actions", wd.id), nil)
+	return voidCommand("DELETE", wd.requestURL("/session/%s/actions", wd.id), nil, wd.httpClient)
 }
 
 func (wd *remoteWD) DismissAlert() error {

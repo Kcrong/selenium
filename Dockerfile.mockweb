@@ -1,0 +1,10 @@
+FROM golang:1.24-alpine
+WORKDIR /app
+
+COPY testdata/server.go main.go
+
+COPY testdata/htmls htmls
+
+RUN go build -o testserver main.go
+
+CMD ["./testserver"]

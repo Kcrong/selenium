@@ -4,7 +4,6 @@ package internal
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -18,6 +17,8 @@ import (
 
 // TestIntegration_NewChromeDriverService verifies that ChromeDriver starts correctly
 func TestIntegration_NewChromeDriverService(t *testing.T) {
+	t.Parallel()
+
 	// Fetch ChromeDriver path and port
 	chromeDriverPath := os.Getenv("CHROMEDRIVER_PATH")
 	if chromeDriverPath == "" {
@@ -29,9 +30,9 @@ func TestIntegration_NewChromeDriverService(t *testing.T) {
 	// Start ChromeDriver service
 	service, err := pkg.NewChromeDriverService(chromeDriverPath, port)
 	require.NoError(t, err, "Failed to start ChromeDriver service")
-	defer func() {
+	t.Cleanup(func() {
 		assert.NoError(t, service.Stop(), "Failed to stop ChromeDriver service")
-	}()
+	})
 
 	// Wait for ChromeDriver to be ready
 	url := fmt.Sprintf("http://localhost:%d/status", port)
@@ -40,19 +41,21 @@ func TestIntegration_NewChromeDriverService(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		defer func(Body io.ReadCloser) {
+		t.Cleanup(func() {
 			assert.NoError(t, resp.Body.Close(), "Failed to close response body")
-		}(resp.Body)
+		})
+
 		return resp.StatusCode == http.StatusOK
+
 	}, 10*time.Second, 500*time.Millisecond, "ChromeDriver did not start in time")
 
 	// Verify that a WebDriver session can be created
 	caps := pkg.Capabilities{"browserName": "chrome"}
 	wd, err := pkg.NewRemote(caps, fmt.Sprintf("http://localhost:%d", port))
 	require.NoError(t, err, "Failed to create WebDriver session")
-	defer func(wd pkg.WebDriver) {
-		assert.NoError(t, wd.Quit(), "Failed to quit WebDriver session")
-	}(wd)
+	t.Cleanup(func() {
+		assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")
+	})
 
 	// Verify session is active
 	assert.NotEmpty(t, wd.SessionID(), "WebDriver session ID should not be empty")

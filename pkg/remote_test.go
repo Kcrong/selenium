@@ -26,9 +26,6 @@ func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func TestFindElement(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.Contains(req.URL.Path, "/element") {
@@ -42,9 +39,9 @@ func TestFindElement(t *testing.T) {
 			return nil, errors.New("unexpected request")
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
 	wd := &remoteWD{}
+	wd.httpClient = &http.Client{Transport: mock}
 	err := wd.SwitchSession("fakeSession")
 	require.NoError(t, err)
 	elem, err := wd.FindElement(ByID, "myID")
@@ -57,9 +54,6 @@ func TestFindElement(t *testing.T) {
 }
 
 func TestFindElements(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/elements") {
@@ -73,11 +67,10 @@ func TestFindElements(t *testing.T) {
 			return nil, errors.New("unexpected request")
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 	elems, err := wd.FindElements(ByName, "myName")
 	if err != nil {
 		t.Fatalf("FindElements error: %v", err)
@@ -88,9 +81,6 @@ func TestFindElements(t *testing.T) {
 }
 
 func TestAddCookie(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.Contains(req.URL.Path, "/cookie") {
@@ -104,11 +94,9 @@ func TestAddCookie(t *testing.T) {
 			return nil, fmt.Errorf("unexpected path: %s", req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	c := &Cookie{Name: "myCookie", Value: "val"}
 	if err := wd.AddCookie(c); err != nil {
@@ -117,9 +105,6 @@ func TestAddCookie(t *testing.T) {
 }
 
 func TestGetCookies(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "GET" && strings.Contains(req.URL.Path, "/cookie") {
@@ -133,11 +118,9 @@ func TestGetCookies(t *testing.T) {
 			return nil, errors.New("unexpected request")
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	cookies, err := wd.GetCookies()
 	if err != nil {
@@ -149,9 +132,6 @@ func TestGetCookies(t *testing.T) {
 }
 
 func TestDismissAlert(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/alert/dismiss") {
@@ -165,11 +145,9 @@ func TestDismissAlert(t *testing.T) {
 			return nil, fmt.Errorf("unexpected path: %s", req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	if err := wd.DismissAlert(); err != nil {
 		t.Fatalf("DismissAlert error: %v", err)
@@ -177,9 +155,6 @@ func TestDismissAlert(t *testing.T) {
 }
 
 func TestResizeWindow(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/window/rect") {
@@ -193,11 +168,9 @@ func TestResizeWindow(t *testing.T) {
 			return nil, fmt.Errorf("unexpected path: %s", req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	if err := wd.ResizeWindow("", 800, 600); err != nil {
 		t.Fatalf("ResizeWindow error: %v", err)
@@ -205,9 +178,6 @@ func TestResizeWindow(t *testing.T) {
 }
 
 func TestPerformActions(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	testCases := []struct {
 		name   string
 		button MouseButton
@@ -230,27 +200,21 @@ func TestPerformActions(t *testing.T) {
 			return nil, fmt.Errorf("unexpected request to %s", req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			wd := &remoteWD{}
-			err := wd.SwitchSession("fakeSession")
-			require.NoError(t, err)
+			wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+			require.NoError(t, wd.SwitchSession("fakeSession"))
 
 			wd.StoreKeyActions("testKey", KeyDownAction("A"), KeyUpAction("A"))
 			wd.StorePointerActions("testPointer", MousePointer, PointerDownAction(tc.button), PointerUpAction(tc.button))
 
-			err = wd.PerformActions()
-			require.NoError(t, err, "PerformActions should not return an error")
+			require.NoError(t, wd.PerformActions(), "PerformActions should not return an error")
 		})
 	}
 }
 
 func TestReleaseActions(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "DELETE" && strings.HasSuffix(req.URL.Path, "/actions") {
@@ -264,15 +228,11 @@ func TestReleaseActions(t *testing.T) {
 			return nil, fmt.Errorf("unexpected request: %s %s", req.Method, req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
-	if err := wd.ReleaseActions(); err != nil {
-		t.Fatalf("ReleaseActions error: %v", err)
-	}
+	assert.NoError(t, wd.ReleaseActions(), "ReleaseActions should not return an error")
 }
 
 func TestWaitWithTimeoutAndInterval(t *testing.T) {
@@ -281,15 +241,10 @@ func TestWaitWithTimeoutAndInterval(t *testing.T) {
 		return true, nil
 	}
 	err := wd.WaitWithTimeoutAndInterval(cond, 2*time.Second, 10*time.Millisecond)
-	if err != nil {
-		t.Fatalf("WaitWithTimeoutAndInterval error: %v", err)
-	}
+	assert.NoError(t, err, "WaitWithTimeoutAndInterval should not return an error")
 }
 
 func TestKeyDownUp(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.HasSuffix(req.URL.Path, "/actions") {
@@ -303,21 +258,14 @@ func TestKeyDownUp(t *testing.T) {
 			return nil, fmt.Errorf("unexpected actions call: %s", req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	if err := wd.KeyDown("abc"); err != nil {
-		t.Fatalf("KeyDown error: %v", err)
-	}
-	if err := wd.KeyUp("abc"); err != nil {
-		t.Fatalf("KeyUp error: %v", err)
-	}
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+
+	assert.NoError(t, wd.KeyDown("abc"))
+	assert.NoError(t, wd.KeyUp("abc"))
 }
 
 func TestLog(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	testCases := []struct {
 		name     string
 		logType  log.Type
@@ -402,14 +350,11 @@ func TestLog(t *testing.T) {
 					return nil, fmt.Errorf("unexpected call: %s %s", req.Method, req.URL.Path)
 				},
 			}
-			HTTPClient = &http.Client{Transport: mock}
 
-			wd := &remoteWD{}
-			err := wd.SwitchSession("fakeSession")
-			require.NoError(t, err)
+			wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+			require.NoError(t, wd.SwitchSession("fakeSession"))
 
 			logs, err := wd.Log(tc.logType)
-
 			if tc.wantErr {
 				assert.Error(t, err, "expected an error but got none")
 			} else {
@@ -426,9 +371,6 @@ func TestLog(t *testing.T) {
 }
 
 func TestRemoteWE_Click(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
 			if req.Method == "POST" && strings.Contains(req.URL.Path, "/element/mockElemID/click") {
@@ -442,19 +384,15 @@ func TestRemoteWE_Click(t *testing.T) {
 			return nil, fmt.Errorf("unexpected request: %s %s", req.Method, req.URL.Path)
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	elem := &remoteWE{
 		parent: wd,
 		id:     "mockElemID",
 	}
-	if err := elem.Click(); err != nil {
-		t.Fatalf("elem.Click() error: %v", err)
-	}
+	assert.NoError(t, elem.Click(), "Click() should not return an error")
 }
 
 func TestRound(t *testing.T) {
@@ -470,16 +408,11 @@ func TestRound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		got := round(tt.in)
-		if got != tt.want {
-			t.Errorf("round(%f) = %d, want %d", tt.in, got, tt.want)
-		}
+		assert.Equal(t, tt.want, got)
 	}
 }
 
 func TestScreenshot(t *testing.T) {
-	oldClient := HTTPClient
-	defer func() { HTTPClient = oldClient }()
-
 	dataBase64 := "aGVsbG8gd29ybGQ=" // "hello world"
 	mock := &mockRoundTripper{
 		handler: func(req *http.Request) (*http.Response, error) {
@@ -491,19 +424,13 @@ func TestScreenshot(t *testing.T) {
 			}, nil
 		},
 	}
-	HTTPClient = &http.Client{Transport: mock}
 
-	wd := &remoteWD{}
-	err := wd.SwitchSession("fakeSession")
-	require.NoError(t, err)
+	wd := &remoteWD{httpClient: &http.Client{Transport: mock}}
+	require.NoError(t, wd.SwitchSession("fakeSession"))
 
 	img, err := wd.Screenshot()
-	if err != nil {
-		t.Fatalf("Screenshot error: %v", err)
-	}
-	if string(img) != "hello world" {
-		t.Errorf("expected screenshot data 'hello world', got %s", string(img))
-	}
+	require.NoError(t, err, "Screenshot() should not return an error")
+	assert.EqualValues(t, "hello world", string(img))
 }
 
 func TestElemMarshalJSON(t *testing.T) {
@@ -512,12 +439,8 @@ func TestElemMarshalJSON(t *testing.T) {
 		parent: &remoteWD{},
 	}
 	b, err := json.Marshal(elem)
-	if err != nil {
-		t.Fatalf("Marshal(elem) error: %v", err)
-	}
-	if !strings.Contains(string(b), `"element-6066-11e4-a52e-4f735466cecf":"element123"`) {
-		t.Errorf("expected element-6066...=element123 in JSON, got %s", string(b))
-	}
+	require.NoError(t, err, "MarshalJSON() should not return an error")
+	assert.Contains(t, string(b), `"element-6066-11e4-a52e-4f735466cecf":"element123"`)
 }
 
 func TestVersionParse(t *testing.T) {

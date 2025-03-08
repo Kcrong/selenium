@@ -1,25 +1,86 @@
 services:
-  chrome:
-    image: selenium/standalone-chrome:latest
-    container_name: "chrome"
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: "selenium-hub"
     ports:
       - "4444:4444"
+    environment:
+      - SE_NODE_MAX_SESSIONS=20 # Allow 20 parallel sessions
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_SESSION_REQUEST_TIMEOUT=600
+      - SE_SESSION_RETRY_INTERVAL=5
+      - SE_DRAIN_AFTER_SESSION_COUNT=0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/status"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
-  firefox:
-    image: selenium/standalone-firefox:latest
-    container_name: "firefox"
+  selenium-chrome:
+    profiles:
+      - disable-on-arm
+    image: selenium/node-chrome:latest
+    container_name: "selenium-chrome"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_INSTANCES=10
+      - SE_NODE_MAX_SESSIONS=10
+
+  selenium-firefox:
+    image: selenium/node-firefox:latest
+    container_name: "selenium-firefox"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_INSTANCES=10
+      - SE_NODE_MAX_SESSIONS=10
+
+  selenium-chromium:
+    profiles:
+      - enable-on-arm
+    image: selenium/node-chromium:latest
+    container_name: "selenium-chrome"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_INSTANCES=10
+      - SE_NODE_MAX_SESSIONS=10
+
+  mock-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.mockweb
+    container_name: "mock-web"
+    environment:
+      - SELENIUM_TEST_SERVER_PORT=18080
     ports:
-      - "4445:4444"
+      - "8001:18080"
 
-  test-runner:
+  integration-test:
     build:
       context: .
       dockerfile: Dockerfile.integration.test
     container_name: "integration-test"
     depends_on:
-      - chrome
-      - firefox
+      selenium-hub:
+        condition: service_healthy
+      mock-web:
+        condition: service_started
     environment:
-      - SELENIUM_CHROME_URL=http://chrome:4444
-      - SELENIUM_FIREFOX_URL=http://firefox:4444
+      - SELENIUM_CHROME_URL=http://selenium-hub:4444
+      - SELENIUM_FIREFOX_URL=http://selenium-hub:4444
+      - SELENIUM_TEST_SERVER_URL=http://mock-web:18080
     command: go test -v -tags=integration_test ./...

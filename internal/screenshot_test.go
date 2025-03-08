@@ -20,10 +20,9 @@ func runScreenshotTest(t *testing.T, browser, url string) {
 	caps := pkg.Capabilities{"browserName": browser}
 	wd, err := pkg.NewRemote(caps, url)
 	require.NoError(t, err, "Failed to create WebDriver")
-	defer func(wd pkg.WebDriver) {
-		err := wd.Quit()
-		assert.NoError(t, err, "Failed to quit WebDriver")
-	}(wd)
+	t.Cleanup(func() {
+		assert.NoError(t, wd.Quit(), "Failed to quit WebDriver")
+	})
 
 	// Navigate to test page (e.g., example.com)
 	testPage := "https://example.com"
@@ -41,6 +40,8 @@ func runScreenshotTest(t *testing.T, browser, url string) {
 
 // TestIntegration_Screenshot_Chrome runs the test on Chrome
 func TestIntegration_Screenshot_Chrome(t *testing.T) {
+	t.Parallel()
+
 	url := os.Getenv("SELENIUM_CHROME_URL")
 	if url == "" {
 		t.Skip("SELENIUM_CHROME_URL not set, skipping Chrome screenshot test")
@@ -50,6 +51,8 @@ func TestIntegration_Screenshot_Chrome(t *testing.T) {
 
 // TestIntegration_Screenshot_Firefox runs the test on Firefox
 func TestIntegration_Screenshot_Firefox(t *testing.T) {
+	t.Parallel()
+
 	url := os.Getenv("SELENIUM_FIREFOX_URL")
 	if url == "" {
 		t.Skip("SELENIUM_FIREFOX_URL not set, skipping Firefox screenshot test")

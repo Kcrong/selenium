@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Action Test</title>
+    <script>
+        function onClick(event) {
+            let btn = event.button;
+            let target = document.getElementById("testButton");
+            target.className = "clicked-" + btn;
+        }
+    </script>
+</head>
+<body>
+<button id="testButton" onclick="onClick(event)">Click Me</button>
+</body>
+</html>
