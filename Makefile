@@ -19,6 +19,7 @@ format:
 		-project-name 'github.com/Kcrong/selenigo' \
 		-format \
 		-set-alias \
+		-separate-named \
 		./...
 	@gofmt -s -w .
 	$(GOMOD) tidy
