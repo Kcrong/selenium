@@ -13,7 +13,12 @@ import (
 const (
 	// OptionsKey is the capability key for chrome options.
 	OptionsKey = "goog:chromeOptions"
+	// BrowserName is the name of the Chrome browser.
+	BrowserName = "chrome"
 )
+
+// ErrEmptyExtension is returned when an empty extension is provided.
+var ErrEmptyExtension = errors.New("encoded extension cannot be empty")
 
 // Options contains the base options for Chromium-based browsers.
 type Options struct {
@@ -77,8 +82,6 @@ func (o *Options) AddExtension(path string) error {
 	return nil
 }
 
-var ErrEmptyExtension = errors.New("encoded extension cannot be empty")
-
 // AddEncodedExtension adds Base64 encoded string with extension data.
 func (o *Options) AddEncodedExtension(encodedExtension string) error {
 	if encodedExtension == "" {
@@ -124,7 +127,7 @@ func (o *Options) getEncodedExtensions() ([]string, error) {
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
 	caps := selenigo.NewCapabilities()
-	caps.Capabilities.BrowserName = "chrome" // Default to chrome, can be overridden by specific implementations
+	caps.Capabilities.BrowserName = BrowserName
 
 	chromeOptions := make(map[string]interface{})
 
@@ -154,6 +157,24 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 	}
 
 	caps.SetBrowserOptions(OptionsKey, chromeOptions)
+
+	return caps.ToCapabilities()
+}
+
+// GetExtensions returns a list of encoded extensions.
+func (o *Options) GetExtensions() ([]string, error) {
+	return o.getEncodedExtensions()
+}
+
+// GetExperimentalOptions returns a map of experimental options.
+func (o *Options) GetExperimentalOptions() map[string]interface{} {
+	return o.experimentalOpts
+}
+
+// DefaultCapabilities returns the default capabilities for Chromium.
+func (o *Options) DefaultCapabilities() map[string]interface{} {
+	caps := selenigo.NewCapabilities()
+	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()
 }
