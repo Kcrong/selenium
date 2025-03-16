@@ -3,19 +3,19 @@ package actions
 import (
 	"time"
 
-	"github.com/Kcrong/selenigo"
-	"github.com/Kcrong/selenigo/remote/webelement"
+	"github.com/Kcrong/selenium"
+	"github.com/Kcrong/selenium/remote/webelement"
 )
 
 // ActionChains provides a way to automate low level interactions such as
 // mouse movements, mouse button actions, key press, and context menu interactions.
 type ActionChains struct {
-	driver  selenigo.WebDriver
+	driver  selenium.WebDriver
 	actions *ActionBuilder
 }
 
 // NewActionChains creates a new ActionChains instance.
-func NewActionChains(driver selenigo.WebDriver, duration time.Duration) *ActionChains {
+func NewActionChains(driver selenium.WebDriver, duration time.Duration) *ActionChains {
 	return &ActionChains{
 		driver:  driver,
 		actions: NewActionBuilder(driver, nil, nil, nil, duration),

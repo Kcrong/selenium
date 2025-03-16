@@ -3,14 +3,14 @@ package wpewebkit
 import (
 	"errors"
 
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
 	// OptionsKey is the capability key for WPEWebKit options.
 	OptionsKey = "wpe:browserOptions"
 	// BrowserName is the name of the WPEWebKit browser.
-	BrowserName = selenigo.BrowserType("wpewebkit")
+	BrowserName = selenium.BrowserType("wpewebkit")
 )
 
 // ErrInvalidBinaryLocation is returned when an invalid binary location is provided.
@@ -53,7 +53,7 @@ func (o *Options) AddArgument(arg string) {
 
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	browserOptions := make(map[string]interface{})
@@ -73,7 +73,7 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for WPEWebKit.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()

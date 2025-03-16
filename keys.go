@@ -1,4 +1,4 @@
-package selenigo
+package selenium
 
 // KeyboardKey represents a keyboard key
 type KeyboardKey string

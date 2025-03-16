@@ -12,8 +12,6 @@ linters-settings:
     locale: US
   lll:
     line-length: 120
-  goimports:
-    local-prefixes: github.com/Kcrong/selenigo
   gocritic:
     enabled-tags:
       - diagnostic
@@ -36,7 +34,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - tenv  # replaced by usetesting
+    - tenv
     - gochecknoglobals
     - depguard
     - wrapcheck
@@ -44,6 +42,8 @@ linters:
     - interfacebloat
     - varnamelen
     - godox
+    - goimports
+    - gci
 
 issues:
   exclude-dirs:

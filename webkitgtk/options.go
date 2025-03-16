@@ -1,14 +1,14 @@
 package webkitgtk
 
 import (
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
 	// OptionsKey is the capability key for WebKitGTK options.
 	OptionsKey = "webkitgtk:browserOptions"
 	// BrowserName is the name of the WebKitGTK browser.
-	BrowserName = selenigo.BrowserType("webkitgtk")
+	BrowserName = selenium.BrowserType("webkitgtk")
 )
 
 // Options contains the options for WebKitGTK browser.
@@ -54,7 +54,7 @@ func (o *Options) AddArgument(arg string) {
 
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	browserOptions := make(map[string]interface{})
@@ -76,7 +76,7 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for WebKitGTK.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()

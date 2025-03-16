@@ -1,7 +1,7 @@
-package selenigo
+package selenium
 
 import (
-	"github.com/Kcrong/selenigo/remote/command"
+	"github.com/Kcrong/selenium/remote/command"
 )
 
 // Alert represents a JavaScript alert, confirm, or prompt dialog.

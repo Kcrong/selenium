@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
@@ -138,7 +138,7 @@ func (o *Options) getEncodedExtensions() ([]string, error) {
 }
 
 // ToCapabilities converts the options to a capabilities map.
-func (o *Options) ToCapabilities() selenigo.Capabilities {
+func (o *Options) ToCapabilities() selenium.Capabilities {
 	chromeOptions := make(map[string]interface{})
 
 	// Add experimental options
@@ -174,8 +174,8 @@ func (o *Options) ToCapabilities() selenigo.Capabilities {
 	}
 
 	//nolint:exhaustruct // Use explicit fields for better readability.
-	return selenigo.Capabilities{
-		BrowserName:  selenigo.Chrome,
+	return selenium.Capabilities{
+		BrowserName:  selenium.Chrome,
 		PlatformName: "ANY",
 		BrowserOptions: map[string]interface{}{
 			OptionsKey: chromeOptions,

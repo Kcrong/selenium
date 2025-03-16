@@ -1,16 +1,16 @@
 package safari
 
 import (
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
 	// OptionsKey is the capability key for safari options.
 	OptionsKey = "safari:options"
 	// BrowserName is the name of the Safari browser.
-	BrowserName = selenigo.BrowserType("safari")
+	BrowserName = selenium.BrowserType("safari")
 	// TechnologyPreviewBrowserName is the name of the Safari Technology Preview browser.
-	TechnologyPreviewBrowserName = selenigo.BrowserType("Safari Technology Preview")
+	TechnologyPreviewBrowserName = selenium.BrowserType("Safari Technology Preview")
 
 	// AutomaticInspection is the capability key for automatic inspection.
 	AutomaticInspection = "safari:automaticInspection"
@@ -69,7 +69,7 @@ func (o *Options) SetUseTechnologyPreview(use bool) {
 
 // GetUseTechnologyPreview returns whether Safari Technology Preview is being used.
 func (o *Options) GetUseTechnologyPreview() bool {
-	if browserName, ok := o.caps["browserName"].(selenigo.BrowserType); ok {
+	if browserName, ok := o.caps["browserName"].(selenium.BrowserType); ok {
 		return browserName == TechnologyPreviewBrowserName
 	}
 
@@ -78,10 +78,10 @@ func (o *Options) GetUseTechnologyPreview() bool {
 
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 
 	// Set browser name if not already set
-	if browserName, ok := o.caps["browserName"].(selenigo.BrowserType); ok {
+	if browserName, ok := o.caps["browserName"].(selenium.BrowserType); ok {
 		caps.Capabilities.BrowserName = browserName
 	} else {
 		caps.Capabilities.BrowserName = BrowserName
@@ -99,7 +99,7 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for Safari.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()

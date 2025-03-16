@@ -1,8 +1,8 @@
 package edge
 
 import (
-	"github.com/Kcrong/selenigo"
-	"github.com/Kcrong/selenigo/chromium"
+	"github.com/Kcrong/selenium"
+	"github.com/Kcrong/selenium/chromium"
 )
 
 const (
@@ -49,7 +49,7 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for Edge.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()

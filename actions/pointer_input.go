@@ -3,7 +3,7 @@ package actions
 import (
 	"time"
 
-	"github.com/Kcrong/selenigo/remote/webelement"
+	"github.com/Kcrong/selenium/remote/webelement"
 )
 
 const (

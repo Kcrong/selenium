@@ -1,4 +1,4 @@
-package selenigo
+package selenium
 
 // WindowType represents a type of browser window
 type WindowType string

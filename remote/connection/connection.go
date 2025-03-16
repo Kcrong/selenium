@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kcrong/selenigo/remote/command"
+	"github.com/Kcrong/selenium/remote/command"
 )
 
 const (

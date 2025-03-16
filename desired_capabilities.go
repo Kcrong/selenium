@@ -1,4 +1,4 @@
-package selenigo
+package selenium
 
 /*
 ## Usage

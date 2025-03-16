@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
@@ -301,7 +301,7 @@ func (o *Options) GetIgnoreProcessMatch() bool {
 
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	if len(o.options) > 0 {
@@ -313,7 +313,7 @@ func (o *Options) ToCapabilities() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for IE.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()

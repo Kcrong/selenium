@@ -9,14 +9,14 @@ test:
 	$(GOTEST) -v -race -cover ./...
 
 lint:
-	golangci-lint run --config .golangci.yml
+	golangci-lint run -v --config .golangci.yml
 
 format:
 	@go install -v github.com/incu6us/goimports-reviser/v3@latest
 	golangci-lint run --fix --config .golangci.yml
 	@goimports-reviser -rm-unused \
 		-company-prefixes 'github.com/Kcrong,github.com/hodlgap' \
-		-project-name 'github.com/Kcrong/selenigo' \
+		-project-name 'github.com/Kcrong/selenium' \
 		-format \
 		-set-alias \
 		-separate-named \

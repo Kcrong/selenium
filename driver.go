@@ -1,7 +1,7 @@
-package selenigo
+package selenium
 
 import (
-	"github.com/Kcrong/selenigo/remote/command"
+	"github.com/Kcrong/selenium/remote/command"
 )
 
 // WebDriver interface defines the basic operations that all WebDriver implementations must support.

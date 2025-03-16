@@ -1,11 +1,11 @@
-package selenigo_test
+package selenium_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 type MockConvertible struct {
@@ -87,7 +87,7 @@ func TestMarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := selenigo.Marshal(tt.input)
+			result := selenium.Marshal(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

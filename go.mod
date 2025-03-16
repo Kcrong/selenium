@@ -1,4 +1,4 @@
-module github.com/Kcrong/selenigo
+module github.com/Kcrong/selenium
 
 go 1.24.0
 

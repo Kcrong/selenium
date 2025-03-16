@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenium"
 )
 
 const (
@@ -126,7 +126,7 @@ func (o *Options) getEncodedExtensions() ([]string, error) {
 
 // ToCapabilities converts the options to a capabilities map.
 func (o *Options) ToCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	chromeOptions := make(map[string]interface{})
@@ -173,7 +173,7 @@ func (o *Options) GetExperimentalOptions() map[string]interface{} {
 
 // DefaultCapabilities returns the default capabilities for Chromium.
 func (o *Options) DefaultCapabilities() map[string]interface{} {
-	caps := selenigo.NewCapabilities()
+	caps := selenium.NewCapabilities()
 	caps.Capabilities.BrowserName = BrowserName
 
 	return caps.ToCapabilities()
