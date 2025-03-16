@@ -26,4 +26,5 @@ go.work.sum
 
 .idea/
 lint-report.*
-reference/
+
+reference
