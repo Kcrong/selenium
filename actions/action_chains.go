@@ -1,10 +1,10 @@
 package actions
 
 import (
+	"context"
 	"time"
 
 	"github.com/Kcrong/selenium"
-	"github.com/Kcrong/selenium/remote/webelement"
 )
 
 // ActionChains provides a way to automate low level interactions such as
@@ -23,17 +23,17 @@ func NewActionChains(driver selenium.WebDriver, duration time.Duration) *ActionC
 }
 
 // Perform performs all stored actions.
-func (a *ActionChains) Perform() error {
-	return a.actions.Perform()
+func (a *ActionChains) Perform(ctx context.Context) error {
+	return a.actions.Perform(ctx)
 }
 
 // ResetActions clears actions that are already stored on the remote end.
-func (a *ActionChains) ResetActions() error {
-	return a.actions.ClearActions()
+func (a *ActionChains) ResetActions(ctx context.Context) error {
+	return a.actions.ClearActions(ctx)
 }
 
 // Click clicks an element.
-func (a *ActionChains) Click(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) Click(element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.MoveToElement(element)
 	}
@@ -48,7 +48,7 @@ func (a *ActionChains) Click(element webelement.WebElement) *ActionChains {
 }
 
 // ClickAndHold holds down the left mouse button on an element.
-func (a *ActionChains) ClickAndHold(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) ClickAndHold(element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.MoveToElement(element)
 	}
@@ -63,7 +63,7 @@ func (a *ActionChains) ClickAndHold(element webelement.WebElement) *ActionChains
 }
 
 // ContextClick performs a context-click (right click) on an element.
-func (a *ActionChains) ContextClick(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) ContextClick(element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.MoveToElement(element)
 	}
@@ -78,7 +78,7 @@ func (a *ActionChains) ContextClick(element webelement.WebElement) *ActionChains
 }
 
 // DoubleClick double-clicks an element.
-func (a *ActionChains) DoubleClick(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) DoubleClick(element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.MoveToElement(element)
 	}
@@ -93,17 +93,17 @@ func (a *ActionChains) DoubleClick(element webelement.WebElement) *ActionChains 
 }
 
 // DragAndDrop drags and drops an element.
-func (a *ActionChains) DragAndDrop(source, target webelement.WebElement) *ActionChains {
+func (a *ActionChains) DragAndDrop(source, target selenium.WebElement) *ActionChains {
 	return a.ClickAndHold(source).MoveToElement(target).Release(nil)
 }
 
 // DragAndDropByOffset drags and drops an element by an offset.
-func (a *ActionChains) DragAndDropByOffset(source webelement.WebElement, xOffset, yOffset int) *ActionChains {
+func (a *ActionChains) DragAndDropByOffset(source selenium.WebElement, xOffset, yOffset int) *ActionChains {
 	return a.ClickAndHold(source).MoveByOffset(xOffset, yOffset).Release(nil)
 }
 
 // KeyDown sends a key press only, without releasing it.
-func (a *ActionChains) KeyDown(key string, element webelement.WebElement) *ActionChains {
+func (a *ActionChains) KeyDown(key string, element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.Click(element)
 	}
@@ -118,7 +118,7 @@ func (a *ActionChains) KeyDown(key string, element webelement.WebElement) *Actio
 }
 
 // KeyUp releases a modifier key.
-func (a *ActionChains) KeyUp(key string, element webelement.WebElement) *ActionChains {
+func (a *ActionChains) KeyUp(key string, element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.Click(element)
 	}
@@ -145,7 +145,7 @@ func (a *ActionChains) MoveByOffset(xOffset, yOffset int) *ActionChains {
 }
 
 // MoveToElement moves the mouse to the middle of an element.
-func (a *ActionChains) MoveToElement(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) MoveToElement(element selenium.WebElement) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
 			if pointer, ok := device.(*PointerInput); ok {
@@ -157,7 +157,7 @@ func (a *ActionChains) MoveToElement(element webelement.WebElement) *ActionChain
 }
 
 // MoveToElementWithOffset moves the mouse to an element with offset.
-func (a *ActionChains) MoveToElementWithOffset(element webelement.WebElement, xOffset, yOffset int) *ActionChains {
+func (a *ActionChains) MoveToElementWithOffset(element selenium.WebElement, xOffset, yOffset int) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
 			if pointer, ok := device.(*PointerInput); ok {
@@ -177,7 +177,7 @@ func (a *ActionChains) Pause(duration time.Duration) *ActionChains {
 }
 
 // Release releases a held mouse button.
-func (a *ActionChains) Release(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) Release(element selenium.WebElement) *ActionChains {
 	if element != nil {
 		a.MoveToElement(element)
 	}
@@ -204,12 +204,12 @@ func (a *ActionChains) SendKeys(keys string) *ActionChains {
 }
 
 // SendKeysToElement sends keys to a specific element.
-func (a *ActionChains) SendKeysToElement(element webelement.WebElement, keys string) *ActionChains {
+func (a *ActionChains) SendKeysToElement(element selenium.WebElement, keys string) *ActionChains {
 	return a.Click(element).SendKeys(keys)
 }
 
 // ScrollToElement scrolls to an element.
-func (a *ActionChains) ScrollToElement(element webelement.WebElement) *ActionChains {
+func (a *ActionChains) ScrollToElement(element selenium.WebElement) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "wheel" {
 			if wheel, ok := device.(*WheelInput); ok {

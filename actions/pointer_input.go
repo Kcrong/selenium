@@ -3,7 +3,7 @@ package actions
 import (
 	"time"
 
-	"github.com/Kcrong/selenium/remote/webelement"
+	"github.com/Kcrong/selenium"
 )
 
 const (
@@ -140,7 +140,7 @@ func (a *PointerAction) Encode() map[string]interface{} {
 		encoded["button"] = a.Button
 	}
 	if a.Origin != nil {
-		if element, ok := a.Origin.(webelement.WebElement); ok {
+		if element, ok := a.Origin.(selenium.WebElement); ok {
 			encoded["origin"] = map[string]string{
 				"element-6066-11e4-a52e-4f735466cecf": element.GetID(),
 			}

@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"time"
 
 	"github.com/Kcrong/selenium"
@@ -40,13 +41,13 @@ func NewActionBuilder(
 }
 
 // ClearActions clears all actions that are already stored on the remote end.
-func (a *ActionBuilder) ClearActions() error {
-	_, err := a.driver.Execute(command.W3CClearActions, nil)
+func (a *ActionBuilder) ClearActions(ctx context.Context) error {
+	_, err := a.driver.Execute(ctx, command.W3CClearActions, nil)
 	return err
 }
 
 // Perform performs all stored actions.
-func (a *ActionBuilder) Perform() error {
+func (a *ActionBuilder) Perform(ctx context.Context) error {
 	params := make(map[string]interface{})
 	actions := make([]map[string]interface{}, 0)
 
@@ -66,7 +67,7 @@ func (a *ActionBuilder) Perform() error {
 	}
 
 	params["actions"] = actions
-	_, err := a.driver.Execute(command.W3CActions, params)
+	_, err := a.driver.Execute(ctx, command.W3CActions, params)
 	return err
 }
 
