@@ -1,10 +1,10 @@
 version: 2
 updates:
-  # Go modules updates (both security and minor updates)
+  # Go modules updates (security updates daily, minor updates weekly)
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "daily"  # Check updates daily
+      interval: "daily"  # Security updates checked daily
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -12,25 +12,21 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    # Security updates are prioritized
     allow:
       - dependency-type: "direct"
     ignore:
       - dependency-type: "development"
       - update-types: ["version-update:semver-major"]
-    # Groups security updates into their own PRs
     groups:
       security-updates:
-        applies-to: security-updates
-        commit-message:
-          prefix: "fix(security)"
-          include: "scope"
+        patterns:
+          - "*"  # Groups all security-related updates into one PR
 
-  # GitHub Actions updates (both security and minor updates)
+  # GitHub Actions updates (security updates daily, minor updates weekly)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"  # Check updates daily
+      interval: "daily"  # Security updates checked daily
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -40,10 +36,7 @@ updates:
       include: "scope"
     ignore:
       - update-types: ["version-update:semver-major"]
-    # Groups security updates into separate PRs
     groups:
       security-updates:
-        applies-to: security-updates
-        commit-message:
-          prefix: "fix(security)"
-          include: "scope"
+        patterns:
+          - "*"  # Groups all security-related updates into one PR
