@@ -9,7 +9,7 @@ test:
 	$(GOTEST) -v -race -cover ./...
 
 lint:
-	golangci-lint run -v --config .golangci.yml
+	golangci-lint run --config .golangci.yml
 
 format:
 	@go install -v github.com/incu6us/goimports-reviser/v3@latest

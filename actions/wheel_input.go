@@ -3,12 +3,12 @@ package actions
 import (
 	"time"
 
-	"github.com/Kcrong/selenium/remote/webelement"
+	"github.com/Kcrong/selenium"
 )
 
 // ScrollOrigin represents the origin point for a scroll action.
 type ScrollOrigin struct {
-	Element  webelement.WebElement
+	Element  selenium.WebElement
 	XOffset  int
 	YOffset  int
 	Viewport bool
@@ -96,7 +96,7 @@ func (a *WheelAction) Encode() map[string]interface{} {
 	}
 
 	if a.Origin != nil {
-		if element, ok := a.Origin.(webelement.WebElement); ok {
+		if element, ok := a.Origin.(selenium.WebElement); ok {
 			encoded["origin"] = map[string]string{
 				"element-6066-11e4-a52e-4f735466cecf": element.GetID(),
 			}

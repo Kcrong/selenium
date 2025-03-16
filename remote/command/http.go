@@ -82,10 +82,10 @@ var EndpointMap = EndPointMapType{
 	GetTimeouts: {http.MethodGet, "/session/$sessionId/timeouts"},
 	SetTimeouts: {http.MethodPost, "/session/$sessionId/timeouts"},
 
-	AcceptAlert:   {http.MethodPost, "/session/$sessionId/alert/accept"},
-	DismissAlert:  {http.MethodPost, "/session/$sessionId/alert/dismiss"},
-	GetAlertText:  {http.MethodGet, "/session/$sessionId/alert/text"},
-	SendAlertText: {http.MethodPost, "/session/$sessionId/alert/text"},
+	W3CDismissAlert:  {http.MethodPost, "/session/$sessionId/alert/dismiss"},
+	W3CAcceptAlert:   {http.MethodPost, "/session/$sessionId/alert/accept"},
+	W3CSetAlertValue: {http.MethodPost, "/session/$sessionId/alert/text"},
+	W3CGetAlertText:  {http.MethodGet, "/session/$sessionId/alert/text"},
 
 	TakeScreenshot:        {http.MethodGet, "/session/$sessionId/screenshot"},
 	TakeElementScreenshot: {http.MethodGet, "/session/$sessionId/element/$id/screenshot"},

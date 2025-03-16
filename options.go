@@ -63,16 +63,17 @@ type Capabilities struct {
 	BrowserOptions            map[string]interface{}
 	UnhandledPromptBehavior   HandlePromptBehaviorType `json:"unhandledPromptBehavior"`
 	PageLoadStrategy          PageLoadStrategy         `json:"pageLoadStrategy"`
-	PlatformName              string
-	BrowserName               BrowserType `json:"browserName"`
-	BidiWebSocketURL          string      `json:"webSocketUrl"`
-	BrowserVersion            string      `json:"browserVersion"`
-	Timeouts                  Timeouts    `json:"timeouts"`
-	AcceptInsecureCerts       bool        `json:"acceptInsecureCerts"`
-	StrictFileInteractAbility bool        `json:"strictFileInteractbility"`
-	SetWindowRect             bool        `json:"setWindowRect"`
-	IsDownloadsEnabled        bool        `json:"se:downloadsEnabled"`
-	IsJavaScriptEnabled       bool        `json:"javascriptEnabled"`
+	PlatformName              string                   `json:"platformName"`
+	Platform                  string                   `json:"platform"`
+	BrowserName               BrowserType              `json:"browserName"`
+	BidiWebSocketURL          string                   `json:"webSocketUrl"`
+	BrowserVersion            string                   `json:"browserVersion"`
+	Timeouts                  Timeouts                 `json:"timeouts"`
+	AcceptInsecureCerts       bool                     `json:"acceptInsecureCerts"`
+	StrictFileInteractAbility bool                     `json:"strictFileInteractbility"`
+	SetWindowRect             bool                     `json:"setWindowRect"`
+	IsDownloadsEnabled        bool                     `json:"se:downloadsEnabled"`
+	IsJavaScriptEnabled       bool                     `json:"javascriptEnabled"`
 }
 
 // BaseOptions represents the base options for all browser drivers.
@@ -101,7 +102,7 @@ func (o *BaseOptions) ToCapabilities() map[string]interface{} {
 	caps["browserName"] = o.Capabilities.BrowserName
 	caps["browserVersion"] = o.Capabilities.BrowserVersion
 	caps["platformName"] = o.Capabilities.PlatformName
-	caps["platform"] = o.Capabilities.PlatformName
+	caps["platform"] = o.Capabilities.Platform
 	caps["acceptInsecureCerts"] = o.Capabilities.AcceptInsecureCerts
 	caps["pageLoadStrategy"] = o.Capabilities.PageLoadStrategy
 	caps["strictFileInteractability"] = o.Capabilities.StrictFileInteractAbility
@@ -121,6 +122,12 @@ func (o *BaseOptions) ToCapabilities() map[string]interface{} {
 
 type Convertible interface {
 	ToCapabilities() map[string]interface{}
+}
+
+type RawConvertible map[string]interface{}
+
+func (r RawConvertible) ToCapabilities() map[string]interface{} {
+	return r
 }
 
 func Marshal(c any) map[string]interface{} {

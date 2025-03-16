@@ -101,10 +101,6 @@ const (
 
 // Alert commands
 const (
-	AcceptAlert      Command = "acceptAlert"
-	DismissAlert     Command = "dismissAlert"
-	GetAlertText     Command = "getAlertText"
-	SendAlertText    Command = "sendAlertText"
 	W3CDismissAlert  Command = "w3cDismissAlert"
 	W3CAcceptAlert   Command = "w3cAcceptAlert"
 	W3CSetAlertValue Command = "w3cSetAlertValue"
