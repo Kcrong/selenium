@@ -1,4 +1,4 @@
-package selenium
+package selenigo
 
 // KeyType represents the type of key that can be used
 type KeyType string

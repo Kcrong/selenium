@@ -1,6 +1,7 @@
-package common
+package selenigo
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -44,21 +45,23 @@ func (d *DriverFinder) GetDriverPath() (string, error) {
 	return paths["driver_path"], nil
 }
 
+var ErrBrowserCapabilityNotFound = errors.New("browserName capability not found")
+
 // getBinaryPaths returns the paths to both the driver and browser binaries
 func (d *DriverFinder) getBinaryPaths() (map[string]string, error) {
 	if d.paths["driver_path"] != "" {
 		return d.paths, nil
 	}
 
-	browser, ok := d.options.GetCapability("browserName").(string)
-	if !ok {
-		return nil, fmt.Errorf("browserName capability not found or not a string")
+	browser := d.options.Capabilities.BrowserName
+	if browser == "" {
+		return nil, ErrBrowserCapabilityNotFound
 	}
 
 	// If service path is specified, use it
 	if d.service.Path != "" {
 		if _, err := os.Stat(d.service.Path); err != nil {
-			return nil, fmt.Errorf("the path is not a valid file: %s", d.service.Path)
+			return nil, err
 		}
 		d.paths["driver_path"] = d.service.Path
 		return d.paths, nil
@@ -68,13 +71,13 @@ func (d *DriverFinder) getBinaryPaths() (map[string]string, error) {
 	args := d.toArgs()
 	output, err := d.manager.BinaryPaths(args)
 	if err != nil {
-		return nil, fmt.Errorf("unable to obtain driver for %s: %v", browser, err)
+		return nil, fmt.Errorf("%w: %s", err, args)
 	}
 
 	// Validate driver path
 	if driverPath, ok := output["driver_path"]; ok && driverPath != "" {
 		if _, err := os.Stat(driverPath); err != nil {
-			return nil, fmt.Errorf("the driver path is not a valid file: %s", driverPath)
+			return nil, fmt.Errorf("%w: %s", err, driverPath)
 		}
 		d.paths["driver_path"] = driverPath
 	}
@@ -82,7 +85,7 @@ func (d *DriverFinder) getBinaryPaths() (map[string]string, error) {
 	// Validate browser path if provided
 	if browserPath, ok := output["browser_path"]; ok && browserPath != "" {
 		if _, err := os.Stat(browserPath); err != nil {
-			return nil, fmt.Errorf("the browser path is not a valid file: %s", browserPath)
+			return nil, fmt.Errorf("%w: %s", err, browserPath)
 		}
 		d.paths["browser_path"] = browserPath
 	}
@@ -94,12 +97,12 @@ func (d *DriverFinder) getBinaryPaths() (map[string]string, error) {
 func (d *DriverFinder) toArgs() []string {
 	args := []string{"--browser"}
 
-	browser, ok := d.options.GetCapability("browserName").(string)
-	if ok {
-		args = append(args, browser)
+	browser := d.options.Capabilities.BrowserName
+	if browser != "" {
+		args = append(args, string(browser))
 	}
 
-	if version := d.options.GetBrowserVersion(); version != "" {
+	if version := d.options.Capabilities.BrowserVersion; version != "" {
 		args = append(args, "--browser-version", version)
 	}
 
@@ -111,11 +114,11 @@ func (d *DriverFinder) toArgs() []string {
 	}
 
 	// Handle proxy settings
-	proxy := d.options.GetProxy()
+	proxy := d.options.Proxy
 	if proxy != nil {
-		if httpProxy := proxy.GetHttpProxy(); httpProxy != "" {
+		if httpProxy := proxy.GetHTTPProxy(); httpProxy != "" {
 			args = append(args, "--proxy", httpProxy)
-		} else if sslProxy := proxy.GetSslProxy(); sslProxy != "" {
+		} else if sslProxy := proxy.GetSSLProxy(); sslProxy != "" {
 			args = append(args, "--proxy", sslProxy)
 		}
 	}
@@ -133,5 +136,5 @@ func isExecutable(path string) bool {
 	// Check if the file is regular and has execute permission
 	// Note: This is a simplified check and might need to be adjusted
 	// based on the operating system
-	return !info.IsDir() && (info.Mode()&0111 != 0)
+	return !info.IsDir() && (info.Mode()&0o111 != 0)
 }

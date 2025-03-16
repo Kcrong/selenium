@@ -1,25 +1,24 @@
-package common
+package actions
 
 import (
 	"time"
 
-	"github.com/Kcrong/selenium-go"
-	"github.com/Kcrong/selenium-go/common/actions"
-	"github.com/Kcrong/selenium-go/remote/webelement"
+	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenigo/remote/webelement"
 )
 
 // ActionChains provides a way to automate low level interactions such as
 // mouse movements, mouse button actions, key press, and context menu interactions.
 type ActionChains struct {
-	driver  selenium.WebDriver
-	actions *actions.ActionBuilder
+	driver  selenigo.WebDriver
+	actions *ActionBuilder
 }
 
 // NewActionChains creates a new ActionChains instance.
-func NewActionChains(driver selenium.WebDriver, duration time.Duration) *ActionChains {
+func NewActionChains(driver selenigo.WebDriver, duration time.Duration) *ActionChains {
 	return &ActionChains{
 		driver:  driver,
-		actions: actions.NewActionBuilder(driver, nil, nil, nil, duration),
+		actions: NewActionBuilder(driver, nil, nil, nil, duration),
 	}
 }
 
@@ -40,7 +39,7 @@ func (a *ActionChains) Click(element webelement.WebElement) *ActionChains {
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Click(0)
 			}
 		}
@@ -55,7 +54,7 @@ func (a *ActionChains) ClickAndHold(element webelement.WebElement) *ActionChains
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.ClickAndHold(0)
 			}
 		}
@@ -70,7 +69,7 @@ func (a *ActionChains) ContextClick(element webelement.WebElement) *ActionChains
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Click(2) // Right button
 			}
 		}
@@ -85,7 +84,7 @@ func (a *ActionChains) DoubleClick(element webelement.WebElement) *ActionChains 
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.DoubleClick(0)
 			}
 		}
@@ -110,7 +109,7 @@ func (a *ActionChains) KeyDown(key string, element webelement.WebElement) *Actio
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "key" {
-			if keyboard, ok := device.(*actions.KeyInput); ok {
+			if keyboard, ok := device.(*KeyInput); ok {
 				keyboard.KeyDown(key)
 			}
 		}
@@ -125,7 +124,7 @@ func (a *ActionChains) KeyUp(key string, element webelement.WebElement) *ActionC
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "key" {
-			if keyboard, ok := device.(*actions.KeyInput); ok {
+			if keyboard, ok := device.(*KeyInput); ok {
 				keyboard.KeyUp(key)
 			}
 		}
@@ -137,7 +136,7 @@ func (a *ActionChains) KeyUp(key string, element webelement.WebElement) *ActionC
 func (a *ActionChains) MoveByOffset(xOffset, yOffset int) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Move(xOffset, yOffset, nil)
 			}
 		}
@@ -149,7 +148,7 @@ func (a *ActionChains) MoveByOffset(xOffset, yOffset int) *ActionChains {
 func (a *ActionChains) MoveToElement(element webelement.WebElement) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Move(0, 0, element)
 			}
 		}
@@ -161,7 +160,7 @@ func (a *ActionChains) MoveToElement(element webelement.WebElement) *ActionChain
 func (a *ActionChains) MoveToElementWithOffset(element webelement.WebElement, xOffset, yOffset int) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Move(xOffset, yOffset, element)
 			}
 		}
@@ -184,7 +183,7 @@ func (a *ActionChains) Release(element webelement.WebElement) *ActionChains {
 	}
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "pointer" {
-			if pointer, ok := device.(*actions.PointerInput); ok {
+			if pointer, ok := device.(*PointerInput); ok {
 				pointer.Release(0)
 			}
 		}
@@ -196,7 +195,7 @@ func (a *ActionChains) Release(element webelement.WebElement) *ActionChains {
 func (a *ActionChains) SendKeys(keys string) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "key" {
-			if keyboard, ok := device.(*actions.KeyInput); ok {
+			if keyboard, ok := device.(*KeyInput); ok {
 				keyboard.SendKeys(keys)
 			}
 		}
@@ -213,7 +212,7 @@ func (a *ActionChains) SendKeysToElement(element webelement.WebElement, keys str
 func (a *ActionChains) ScrollToElement(element webelement.WebElement) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "wheel" {
-			if wheel, ok := device.(*actions.WheelInput); ok {
+			if wheel, ok := device.(*WheelInput); ok {
 				wheel.Scroll(0, 0, element, 0, 0)
 			}
 		}
@@ -225,7 +224,7 @@ func (a *ActionChains) ScrollToElement(element webelement.WebElement) *ActionCha
 func (a *ActionChains) ScrollByAmount(deltaX, deltaY int) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "wheel" {
-			if wheel, ok := device.(*actions.WheelInput); ok {
+			if wheel, ok := device.(*WheelInput); ok {
 				wheel.Scroll(deltaX, deltaY, nil, 0, 0)
 			}
 		}
@@ -234,10 +233,10 @@ func (a *ActionChains) ScrollByAmount(deltaX, deltaY int) *ActionChains {
 }
 
 // ScrollFromOrigin scrolls from a specific origin.
-func (a *ActionChains) ScrollFromOrigin(origin *actions.ScrollOrigin, deltaX, deltaY int) *ActionChains {
+func (a *ActionChains) ScrollFromOrigin(origin *ScrollOrigin, deltaX, deltaY int) *ActionChains {
 	for _, device := range a.actions.GetDevices() {
 		if device.GetType() == "wheel" {
-			if wheel, ok := device.(*actions.WheelInput); ok {
+			if wheel, ok := device.(*WheelInput); ok {
 				wheel.Scroll(deltaX, deltaY, origin.Element, origin.XOffset, origin.YOffset)
 			}
 		}

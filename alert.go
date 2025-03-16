@@ -1,17 +1,16 @@
-package common
+package selenigo
 
 import (
-	"github.com/Kcrong/selenium-go"
-	"github.com/Kcrong/selenium-go/remote/command"
+	"github.com/Kcrong/selenigo/remote/command"
 )
 
 // Alert represents a JavaScript alert, confirm, or prompt dialog.
 type Alert struct {
-	driver selenium.WebDriver
+	driver WebDriver
 }
 
 // NewAlert creates a new Alert instance.
-func NewAlert(driver selenium.WebDriver) *Alert {
+func NewAlert(driver WebDriver) *Alert {
 	return &Alert{
 		driver: driver,
 	}

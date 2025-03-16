@@ -2,11 +2,13 @@ package connection
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,8 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kcrong/selenium-go"
-	"github.com/Kcrong/selenium-go/remote/command"
+	"github.com/Kcrong/selenigo/remote/command"
 )
 
 const (
@@ -56,7 +57,7 @@ func NewClientConfig(remoteServerAddr string) *ClientConfig {
 		IgnoreCertificates: false,
 		Timeout:            DefaultTimeout,
 		CACerts:            os.Getenv("REQUESTS_CA_BUNDLE"),
-		UserAgent:          fmt.Sprintf("selenium/%s (golang %s)", selenium.Version, system),
+		UserAgent:          "golang " + system,
 	}
 }
 
@@ -64,7 +65,7 @@ func NewClientConfig(remoteServerAddr string) *ClientConfig {
 type RemoteConnection struct {
 	client       *http.Client
 	config       *ClientConfig
-	commandMap   map[command.Command]command.CommandInfo
+	commandMap   command.EndPointMapType
 	proxyURL     *url.URL
 	proxyAuth    string
 	extraHeaders map[string]string
@@ -78,7 +79,7 @@ func New(config *ClientConfig) (*RemoteConnection, error) {
 
 	rc := &RemoteConnection{
 		config:       config,
-		commandMap:   command.CommandInfoMap,
+		commandMap:   maps.Clone(command.EndpointMap),
 		extraHeaders: make(map[string]string),
 	}
 
@@ -120,22 +121,24 @@ func New(config *ClientConfig) (*RemoteConnection, error) {
 }
 
 // AddCommand adds a new command to the command map
-func (rc *RemoteConnection) AddCommand(cmd command.Command, method command.HTTPMethod, path string) {
-	rc.commandMap[cmd] = command.CommandInfo{
+func (rc *RemoteConnection) AddCommand(cmd command.Command, method, path string) {
+	rc.commandMap[cmd] = command.Endpoint{
 		Method: method,
 		Path:   path,
 	}
 }
 
-// GetCommand returns the command info for the given command
-func (rc *RemoteConnection) GetCommand(cmd command.Command) (command.CommandInfo, bool) {
+// GetEndpoint returns the command endpoint for the given command.
+func (rc *RemoteConnection) GetEndpoint(cmd command.Command) (command.Endpoint, bool) {
 	info, ok := rc.commandMap[cmd]
 	return info, ok
 }
 
 // Execute executes a command with the given parameters
-func (rc *RemoteConnection) Execute(cmd command.Command, params map[string]interface{}) (map[string]interface{}, error) {
-	cmdInfo, ok := rc.GetCommand(cmd)
+func (rc *RemoteConnection) Execute(
+	ctx context.Context, cmd command.Command, params map[string]interface{},
+) (map[string]interface{}, error) {
+	cmdInfo, ok := rc.GetEndpoint(cmd)
 	if !ok {
 		return nil, fmt.Errorf("unknown command: %s", cmd)
 	}
@@ -145,10 +148,11 @@ func (rc *RemoteConnection) Execute(cmd command.Command, params map[string]inter
 		path = strings.ReplaceAll(path, fmt.Sprintf("$%s", k), fmt.Sprint(v))
 	}
 
-	url := fmt.Sprintf("%s%s", rc.config.RemoteServerAddr, path)
+	uri := fmt.Sprintf("%s%s", rc.config.RemoteServerAddr, path)
 
 	var body io.Reader
-	if cmdInfo.Method == command.HTTPPost {
+
+	if cmdInfo.Method == http.MethodPost {
 		jsonData, err := json.Marshal(params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal params: %v", err)
@@ -156,7 +160,7 @@ func (rc *RemoteConnection) Execute(cmd command.Command, params map[string]inter
 		body = bytes.NewReader(jsonData)
 	}
 
-	req, err := http.NewRequest(string(cmdInfo.Method), url, body)
+	req, err := http.NewRequestWithContext(ctx, cmdInfo.Method, uri, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
@@ -167,7 +171,10 @@ func (rc *RemoteConnection) Execute(cmd command.Command, params map[string]inter
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(b io.ReadCloser) {
+		// TODO: log error
+		_ = b.Close()
+	}(resp.Body)
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("request failed with status: %d", resp.StatusCode)

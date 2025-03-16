@@ -1,4 +1,4 @@
-package common
+package selenigo
 
 // KeyboardKey represents a keyboard key
 type KeyboardKey string

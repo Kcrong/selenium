@@ -10,8 +10,10 @@ type Endpoint struct {
 	Path   string
 }
 
+type EndPointMapType map[Command]Endpoint
+
 // EndpointMap maps commands to their HTTP method and path
-var EndpointMap = map[Command]Endpoint{
+var EndpointMap = EndPointMapType{
 	NewSession:    {http.MethodPost, "/session"},
 	DeleteSession: {http.MethodDelete, "/session/$sessionId"},
 	Quit:          {http.MethodDelete, "/session/$sessionId"},

@@ -1,4 +1,4 @@
-package common
+package selenigo
 
 // WindowType represents a type of browser window
 type WindowType string

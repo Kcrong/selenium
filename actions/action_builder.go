@@ -3,19 +3,21 @@ package actions
 import (
 	"time"
 
-	"github.com/Kcrong/selenium-go"
-	"github.com/Kcrong/selenium-go/remote/command"
+	"github.com/Kcrong/selenigo"
+	"github.com/Kcrong/selenigo/remote/command"
 )
 
 // ActionBuilder provides a way to create action sequences.
 type ActionBuilder struct {
-	driver   selenium.WebDriver
+	driver   selenigo.WebDriver
 	devices  []InputDevice
 	duration time.Duration
 }
 
 // NewActionBuilder creates a new ActionBuilder instance.
-func NewActionBuilder(driver selenium.WebDriver, mouse *PointerInput, keyboard *KeyInput, wheel *WheelInput, duration time.Duration) *ActionBuilder {
+func NewActionBuilder(
+	driver selenigo.WebDriver, mouse *PointerInput, keyboard *KeyInput, wheel *WheelInput, duration time.Duration,
+) *ActionBuilder {
 	devices := make([]InputDevice, 0)
 
 	if mouse == nil {
