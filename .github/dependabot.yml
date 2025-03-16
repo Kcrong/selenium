@@ -1,42 +1,21 @@
 version: 2
 updates:
-  # Go modules updates (security updates daily, minor updates weekly)
+  # Go 모듈 의존성 업데이트 설정
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "daily"  # Security updates checked daily
+      interval: "weekly"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "go"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    allow:
-      - dependency-type: "direct"
-    ignore:
-      - dependency-type: "development"
-      - update-types: ["version-update:semver-major"]
-    groups:
-      security-updates:
-        patterns:
-          - "*"  # Groups all security-related updates into one PR
 
-  # GitHub Actions updates (security updates daily, minor updates weekly)
+  # GitHub Actions 의존성 업데이트 설정
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"  # Security updates checked daily
+      interval: "weekly"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "github-actions"
-    commit-message:
-      prefix: "chore(actions)"
-      include: "scope"
-    ignore:
-      - update-types: ["version-update:semver-major"]
-    groups:
-      security-updates:
-        patterns:
-          - "*"  # Groups all security-related updates into one PR
