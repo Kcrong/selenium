@@ -1,56 +1,37 @@
 version: 2
 updates:
-  # Security updates for Go modules (checked daily)
+  # Go modules updates (both security and minor updates)
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "daily"  # Check updates daily
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "security"
-    commit-message:
-      prefix: "fix(security)"
-      include: "scope"
-    allow:
-      - dependency-type: "direct"
-    ignore:
-      - dependency-type: "development"
-
-  # Regular updates for Go modules (checked weekly)
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "go"
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # Security updates are prioritized
+    allow:
+      - dependency-type: "direct"
     ignore:
+      - dependency-type: "development"
       - update-types: ["version-update:semver-major"]
+    # Groups security updates into their own PRs
+    groups:
+      security-updates:
+        applies-to: security-updates
+        commit-message:
+          prefix: "fix(security)"
+          include: "scope"
 
-  # Security updates for GitHub Actions (checked daily)
+  # GitHub Actions updates (both security and minor updates)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "daily"  # Check updates daily
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "security"
-    commit-message:
-      prefix: "fix(security)"
-      include: "scope"
-
-  # Regular updates for GitHub Actions (checked weekly)
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
@@ -59,3 +40,10 @@ updates:
       include: "scope"
     ignore:
       - update-types: ["version-update:semver-major"]
+    # Groups security updates into separate PRs
+    groups:
+      security-updates:
+        applies-to: security-updates
+        commit-message:
+          prefix: "fix(security)"
+          include: "scope"
